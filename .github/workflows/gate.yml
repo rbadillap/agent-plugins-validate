@@ -55,7 +55,7 @@ jobs:
               echo "$1=false" >> "$GITHUB_OUTPUT"
             fi
           }
-          area code '^(src/|fixtures/|schemas/|dist/)|^(package\.json|package-lock\.json|tsconfig\.json|biome\.json|Makefile|\.npmrc|\.gitattributes)$|^\.github/(actions/setup/|workflows/(test-code|gate)\.yml$)'
+          area code '^(src/|fixtures/|schemas/|dist/)|^(package\.json|package-lock\.json|tsconfig\.json|biome\.json|Makefile|\.npmrc|\.gitattributes|action\.yml)$|^\.github/(actions/setup/|workflows/(test-code|gate)\.yml$)'
           area schemas '^(schemas/|\.github/workflows/check-schemas\.yml$)'
           area workflows '^(\.github/|action\.yml$)'
 

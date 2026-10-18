@@ -21,3 +21,39 @@ jobs:
       - run: make lint
       - run: make test
       - run: make check-dist
+
+  # Runs the bundle in dist/ the way a publisher would: once on a plugin that follows the spec, and
+  # once on a plugin that breaks one rule from each area (plugin-name, mcp-server-type, mcp-url).
+  self-check:
+    needs: code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/
+        id: pass
+        with:
+          manifests: |
+            fixtures/self-check/pass/plugin.json
+            fixtures/self-check/pass/mcp.json
+      - uses: $/
+        id: fail
+        continue-on-error: true
+        with:
+          manifests: fixtures/self-check/fail/*.json
+      - name: Check the results
+        env:
+          PASS_VALID: ${{ steps.pass.outputs.valid }}
+          FAIL_VALID: ${{ steps.fail.outputs.valid }}
+          FAIL_OUTCOME: ${{ steps.fail.outcome }}
+        run: |
+          test "$PASS_VALID" = true
+          test "$FAIL_VALID" = false
+          test "$FAIL_OUTCOME" = failure
+      - name: Check the rules the failing run reported
+        env:
+          REPORT: ${{ steps.fail.outputs.report }}
+        run: |
+          jq -e '[.findings[].rule] | sort == ["mcp-server-type", "mcp-url", "plugin-name"]' "$REPORT"
