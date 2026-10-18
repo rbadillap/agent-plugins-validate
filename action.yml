@@ -16,6 +16,10 @@ inputs:
     description: Open one issue per regression on the default branch. Requires issues write permission.
     required: false
     default: "false"
+  token:
+    description: Token for GitHub's API. Used only when open-issues is true. You don't need to set it.
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   valid:

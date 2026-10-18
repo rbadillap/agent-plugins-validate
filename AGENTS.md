@@ -15,8 +15,9 @@ This file is for agents and contributors, and holds rules only. Humans start at 
 
 ## Security rules
 
-- **No network.** No HTTP, DNS or socket use, except GitHub's API for opt-in issues. No telemetry. Schemas are vendored; nothing is fetched at runtime.
-- **No secrets.** The Action reads no secret and has no token of its own. It uses the workflow's `GITHUB_TOKEN` only when `open-issues` is `true`.
+- **No network.** With `open-issues` off, no HTTP, DNS or socket use at all. With it on, only GitHub's API: read the previous version of the manifests and manage the Action's own issues. No telemetry. Schemas are vendored; nothing is fetched at runtime.
+- **No secrets.** The Action reads no secret and has no token of its own. It uses the `token` input (default: the workflow's `GITHUB_TOKEN`) only when `open-issues` is `true`.
+- **A regression is proven, never assumed:** the rule passed at the push's `before` commit and fails now. No `before`, an unreachable `before` or a manifest that didn't exist there means no issue.
 - **Permissions:** `contents: read` always; `issues: write` only with `open-issues`. Never ask for more.
 - **Writes:** only the step outputs, the job summary, the JSON report under `RUNNER_TEMP`, and opt-in issues. No PR comments, no commits, no edits to issues the Action didn't open.
 - **Issues** only on the default branch, read from `github.event.repository.default_branch`, never assumed to be `main`. Only regressions, one per fingerprint (rule, file, field), never duplicated.

@@ -72,6 +72,7 @@ Only errors fail the step.
 | --- | --- | --- |
 | `manifests` | `plugin.json`<br>`mcp.json` | Files or glob patterns, one per line, relative to the repository root. Only files named `plugin.json` or `mcp.json` are read. Use it when your plugin lives in a subfolder, for example `plugins/*/plugin.json`. A missing `mcp.json` is fine: it's optional in the spec. |
 | `open-issues` | `false` | Open one issue per regression on the default branch. See [Issues](#issues). |
+| `token` | `${{ github.token }}` | Used only when `open-issues` is on. You don't need to set it. |
 
 ## Outputs
 
@@ -85,14 +86,14 @@ Only errors fail the step.
 
 | Permission | When | What it's for | Without it | What the Action never does with it |
 | --- | --- | --- | --- | --- |
-| `contents: read` | Always | Lets `actions/checkout` fetch your code. The Action reads the manifests from that checkout. | `actions/checkout` can't fetch a private repository. | Writes, pushes, or reads files other than the manifests. |
-| `issues: write` | Only with `open-issues: true` | Open, update and close the issues this Action created, and create its label. | The run reports that it can't write issues. Validation results don't change. | Reads, edits or closes issues it didn't open, or comments anywhere else. |
+| `contents: read` | Always | Lets `actions/checkout` fetch your code. The Action reads the manifests from that checkout. With `open-issues` on, it also reads the previous version of the same manifests through GitHub's API, to tell a regression from an old problem. | `actions/checkout` can't fetch a private repository, and with `open-issues` on no regression can be proven, so no issue opens. | Writes, pushes, or reads files other than the manifests. |
+| `issues: write` | Only with `open-issues: true` | Open, update and close the issues this Action created, and create its label. | The summary and a warning annotation say the token can't write issues. Validation results don't change, and the step doesn't fail for it. | Reads, edits or closes issues it didn't open, or comments anywhere else. |
 
 ### What this Action never asks for
 
 - **Secrets.** It needs none and reads none.
-- **Tokens of its own.** It uses the workflow's `GITHUB_TOKEN`, and only when `open-issues` is on.
-- **Network access.** It makes no network calls. The one exception is GitHub's API, to manage its own issues, and only when `open-issues` is on. No telemetry.
+- **Tokens of its own.** It uses the workflow's `GITHUB_TOKEN` through the `token` input, and only when `open-issues` is on.
+- **Network access.** With `open-issues` off, it makes no network calls at all. With `open-issues` on, it talks to GitHub's API only: it reads the previous version of your manifests and manages its own issues. It talks to no other server. No telemetry.
 - **Pull request permissions.** It never comments on pull requests. Annotations and the summary cover them.
 
 It also has no opinion on how your MCP servers authenticate or confirm writes. The spec leaves those to the client, so this Action leaves them alone.
@@ -118,7 +119,7 @@ jobs:
 ```
 
 - **Only on the default branch.** The branch comes from GitHub's event data, so it doesn't have to be `main`. On every other branch and on pull requests, `open-issues` does nothing.
-- **Only regressions.** A regression is a rule that passed on the default branch and fails now. Problems that already existed when you turned issues on appear in the summary, never as issues.
+- **Only regressions.** A regression is a rule that passed on the default branch and fails now. Problems that already existed when you turned issues on appear in the summary, never as issues. When the Action can't prove a rule passed before, as on the first push, after a force-push, or for a manifest that didn't exist, it opens no issue.
 - **One issue per regression, never repeated.** Each issue carries a hidden fingerprint (rule, file, field) and the `agent-plugins-validate` label, so a second run finds it instead of opening another.
 - **Kept current.** If the value changes while the issue is open, the Action adds one short comment.
 - **Closed by the fix.** When the rule passes again, the Action closes the issue with a comment naming the commit that fixed it.
