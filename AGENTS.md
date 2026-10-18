@@ -52,10 +52,11 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 
 ## Make targets
 
-`make` is the only interface. Humans, agents and CI run the same targets. It runs only binaries from `node_modules/.bin`, never `npx`.
+`make` is the only interface. Humans, agents and CI run the same targets. It runs only binaries from `node_modules/.bin`, never `npx`. `lint`, `format`, `test` and `build` install the dependencies first when they are missing or `package-lock.json` changed, and `build` does nothing when its inputs are unchanged.
 
 | Target | Runs |
 | --- | --- |
+| `make` or `make help` | List the targets |
 | `make install` | `npm ci --ignore-scripts` from `package-lock.json` |
 | `make lint` | Biome, then `tsc --noEmit` |
 | `make format` | Biome with fixes |
