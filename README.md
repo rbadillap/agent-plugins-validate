@@ -141,6 +141,9 @@ on:
 permissions:
   contents: read
   issues: write
+concurrency:
+  group: agent-plugins-validate-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -152,14 +155,16 @@ jobs:
 ```
 
 - **Only on your default branch.** The branch comes from GitHub's event data, so it doesn't have to be `main`. On other branches and on pull requests, `open-issues` does nothing, and the summary doesn't mention issues on pull requests.
-- **Only on pushes.** A push to the default branch can open an issue. Scheduled or manual runs only update and close existing ones.
+- **Only on pushes.** A push to the default branch can open an issue. Force-pushes and manual runs only update and close existing ones, and scheduled runs do nothing.
+- **One run at a time.** The `concurrency` group above keeps two pushes from racing to open the same issue.
 - **Only real regressions.** A regression is a check that passed at the commit before the push and fails now. The Action proves it by checking the previous version of your manifests. Problems that already existed when you turned issues on appear in the summary, never as issues.
 - **No proof, no issue.** When the Action can't show that a check passed before, it opens nothing: on the first push of a branch, after a force-push, or for a manifest that didn't exist before.
 - **Errors and warnings only.** Notices never open issues.
-- **One issue per problem, never repeated.** Each issue carries the `agent-plugins-validate` label and a hidden fingerprint of the check, file and field, so the next run finds it instead of opening another. If a fixed problem comes back, its issue is reopened. An issue you closed as "not planned" stays closed.
+- **One issue per problem, never repeated.** Each issue carries the `agent-plugins-validate` label and a hidden fingerprint of the check, file and field, so the next run finds it instead of opening another. The Action only ever acts on issues it opened itself: a label and a fingerprint on someone else's issue aren't enough. If a fixed problem comes back, its issue is reopened. An issue you closed as "not planned" stays closed.
 - **Kept current.** If the value changes while the issue is open, the Action updates the issue and adds one short comment.
 - **Closed by the fix.** When the check passes again, the Action closes the issue with a comment naming the commit that fixed it. If the file is no longer checked at all, the issue stays open, and the summary says why.
-- **At most 10 new issues per run.** Anything beyond that is listed in the summary.
+- **Small and bounded.** At most 10 new issues and 50 changes per run. Anything beyond that is listed in the summary.
+- **Rate limits or outages** on GitHub's side skip the issues for that run, with a note in the summary. Your results don't change.
 - **Without `issues: write`**, the summary and a warning say so. Your results don't change, and the check doesn't fail for it.
 
 ### Releases and pinning

@@ -44,11 +44,12 @@ Each rule has fixtures in `fixtures/<rule-id>/`: at least one manifest that pass
 | Path | What lives there |
 | --- | --- |
 | `action.yml` | The Action's interface: inputs, outputs, runtime |
-| `src/main.ts` | Entry point. The only place that reads inputs, files and the environment |
+| `src/main.ts` | Entry point. Reads the inputs and the environment, and wires the steps together |
+| `src/discover/` | Turns patterns into plugin roots safely. The only code that reads manifest files |
 | `src/engine/` | Parsing, version selection, schema validation, error translation |
 | `src/rules/` | One module per rule |
-| `src/report/` | Annotations, job summary, outputs, JSON report |
-| `src/github/` | Opt-in issues: the only code that talks to the network |
+| `src/report/` | Annotations, job summary, outputs, JSON report. The only code that writes files |
+| `src/github/` | Opt-in issues. `api.ts` is the only code that talks to the network |
 | `schemas/<version>/` | Vendored official schemas, their checksum and Apache-2.0 notice |
 | `fixtures/` | Pass and fail manifests per rule |
 | `dist/` | The bundled Action, built from `src/` and committed |

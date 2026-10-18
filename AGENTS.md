@@ -28,7 +28,11 @@ This file is for agents and contributors, and holds rules only. Humans start at 
 ## Engineering rules
 
 - TypeScript strict, ESM, on the `node24` runtime.
-- The engine (`src/engine/`, `src/rules/`) is pure: text in, findings out. Only `src/main.ts` and `src/github/` touch the filesystem, the environment or the network.
+- The engine (`src/engine/`, `src/rules/`) is pure: text in, findings out. Side effects live in exactly these places:
+  - `src/main.ts` reads the inputs and the environment;
+  - `src/discover/` reads manifest files;
+  - `src/report/` writes the summary, the outputs and the report;
+  - `src/github/api.ts` is the only code that uses the network.
 - Schemas live in `schemas/<version>/` with a checksum and their Apache-2.0 notice. Never edit a vendored schema.
 - Every rule has pass and fail fixtures in `fixtures/`. Fixtures are minimal and anonymized: no real repository, publisher or server names.
 - The Action validates its own fixtures with itself in CI.
