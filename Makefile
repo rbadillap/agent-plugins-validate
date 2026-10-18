@@ -14,7 +14,7 @@ SRC   := $(shell find src -name '*.ts' ! -name '*.test.ts') $(wildcard schemas/*
 help:
 	@awk 'BEGIN { FS = ":.*## " } \
 		/^## / { printf "\n%s\n", substr($$0, 4); next } \
-		/^[a-z-]+:.*## / { printf "  %-12s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+		/^[a-z-]+:.*## / { printf "  %-14s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 
 ## Setup
