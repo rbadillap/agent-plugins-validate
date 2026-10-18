@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rbadillap/agent-plugins-validate/blob/main/docs/report.schema.json",
+  "title": "agent-plugins-validate report",
+  "description": "The JSON report written by every run, version 1. See docs/report.md.",
+  "type": "object",
+  "required": [
+    "reportVersion",
+    "action",
+    "valid",
+    "counts",
+    "files",
+    "findings",
+    "configErrors"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "reportVersion": { "const": 1 },
+    "action": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "const": "agent-plugins-validate" },
+        "version": { "type": "string" }
+      }
+    },
+    "valid": { "type": "boolean" },
+    "counts": {
+      "type": "object",
+      "required": ["error", "warning", "notice"],
+      "additionalProperties": false,
+      "properties": {
+        "error": { "type": "integer", "minimum": 0 },
+        "warning": { "type": "integer", "minimum": 0 },
+        "notice": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "kind", "specVersion", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "file": { "type": "string" },
+          "kind": { "enum": ["plugin", "mcp"] },
+          "specVersion": { "type": ["string", "null"] },
+          "status": { "enum": ["pass", "warn", "fail"] }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule",
+          "level",
+          "file",
+          "field",
+          "current",
+          "fix",
+          "spec"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "rule": { "type": "string" },
+          "level": { "enum": ["error", "warning", "notice"] },
+          "file": { "type": "string" },
+          "field": { "type": "string" },
+          "current": { "type": "string" },
+          "fix": { "type": "string" },
+          "spec": { "type": "string", "format": "uri" },
+          "line": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "configErrors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "enum": [
+              "manifests-invalid-pattern",
+              "manifests-no-match",
+              "manifests-too-many",
+              "manifest-too-large"
+            ]
+          },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}
