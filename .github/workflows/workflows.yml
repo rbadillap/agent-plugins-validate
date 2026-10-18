@@ -1,0 +1,17 @@
+name: workflows
+
+on: workflow_call
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workflows-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "not set up yet"
