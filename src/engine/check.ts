@@ -209,7 +209,7 @@ function toFinding(
         ? formatCurrent(problem.current)
         : truncate(problem.currentText),
     fix: problem.fix,
-    spec: specUrl(version, ruleSection(rule, kind)),
+    spec: specUrl(version, problem.section ?? ruleSection(rule, kind)),
   };
   if (position !== undefined) finding.line = position.line;
   return finding;

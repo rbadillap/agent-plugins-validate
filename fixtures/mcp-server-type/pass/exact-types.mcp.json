@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "a": { "type": "stdio", "command": "node" },
+    "b": { "type": "streamable-http", "url": "https://docs.example.com/mcp" },
+    "c": { "type": "sse", "url": "https://docs.example.com/sse" }
+  }
+}

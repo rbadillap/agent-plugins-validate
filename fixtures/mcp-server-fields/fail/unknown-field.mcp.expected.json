@@ -1,0 +1,22 @@
+[
+  {
+    "rule": "mcp-server-fields",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.local.disabled",
+    "current": "true",
+    "fix": "remove \"disabled\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  },
+  {
+    "rule": "mcp-server-fields",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.local.timeout",
+    "current": "30",
+    "fix": "remove \"timeout\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]

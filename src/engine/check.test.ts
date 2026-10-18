@@ -110,7 +110,7 @@ test("a server that isn't an object is checked against a shape and reported by f
   }).findings;
   assert.equal(finding?.field, "mcpServers.broken");
   assert.equal(finding?.current, '"node server.js"');
-  assert.equal(finding?.fix, "use an object");
+  assert.equal(finding?.fix, 'use an object with "type"');
 });
 
 test("findings come back in a stable order, whatever the input order", () => {
@@ -213,7 +213,7 @@ test("a byte order mark gets its own fix", () => {
   );
 });
 
-test("a type error deeper than a server's own type field isn't claimed by mcp-server-type", () => {
+test("a type error deeper than a server's own type field is not mistaken for the server type", () => {
   const text = JSON.stringify({
     $schema: canonicalSchema("1.0.0", "mcp"),
     mcpServers: { a: { type: "stdio", command: "./x", env: { type: 1 } } },
@@ -225,7 +225,7 @@ test("a type error deeper than a server's own type field isn't claimed by mcp-se
   });
   assert.deepEqual(
     inspection.claims.map((c) => c.claimedBy),
-    [[]],
+    [["mcp-server-fields"]],
   );
 });
 

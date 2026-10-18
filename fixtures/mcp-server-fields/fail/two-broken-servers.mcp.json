@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "first": { "type": "stdio", "command": "node", "args": "--port 3000" },
+    "ok": { "type": "stdio", "command": "node" },
+    "second one": { "type": "streamable-http", "url": "https://docs.example.com/mcp", "headers": { "X-Retries": 3 } }
+  }
+}

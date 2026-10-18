@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-env-reserved",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.local.env.PLUGIN_ROOT",
+    "current": "\"PLUGIN_ROOT\"",
+    "fix": "remove \"PLUGIN_ROOT\"; clients set it",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#92-placeholder-expansion",
+    "line": 4
+  }
+]

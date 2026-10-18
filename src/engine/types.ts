@@ -40,6 +40,8 @@ export interface Problem {
   /** Replaces the formatted `current` when the value can't be shown as JSON, e.g. a file that isn't JSON. */
   currentText?: string;
   fix: string;
+  /** Overrides the rule's section, for a rule whose findings cite different sections. */
+  section?: string;
 }
 
 /** A JSON Schema error, normalized so that `path` names the offending value itself. */

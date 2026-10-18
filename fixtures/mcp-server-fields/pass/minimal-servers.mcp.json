@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "local": { "type": "stdio", "command": "node" },
+    "docs": { "type": "streamable-http", "url": "https://docs.example.com/mcp", "headers": { "X-Tenant": "public-tenant" } }
+  }
+}

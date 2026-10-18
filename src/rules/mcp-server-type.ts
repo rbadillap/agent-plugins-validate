@@ -1,4 +1,5 @@
 import type {
+  Claim,
   Problem,
   Rule,
   SchemaError,
@@ -74,7 +75,7 @@ export const mcpServerType: Rule = {
   check(): Problem[] {
     return [];
   },
-  claim(error: SchemaError): Problem | undefined {
+  claim(error: SchemaError): Claim | undefined {
     const server = error.server;
     if (
       server === undefined ||
@@ -91,6 +92,13 @@ export const mcpServerType: Rule = {
     const noBranch = error.keyword === "oneOf" && error.path.length === 2;
     if (!typeField && !noBranch) return undefined;
     const written = (server.value as Record<string, unknown>).type;
+    // `transport` instead of `type` is reported once, by mcp-server-fields, as a rename.
+    if (
+      written === undefined &&
+      Object.hasOwn(server.value as Record<string, unknown>, "transport")
+    ) {
+      return "drop";
+    }
     return {
       path: [...error.path.slice(0, 2), "type"],
       current: written,

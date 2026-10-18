@@ -3,6 +3,8 @@ import { extensionsNamespace } from "./extensions-namespace.ts";
 import { extensionsType } from "./extensions-type.ts";
 import { fieldType } from "./field-type.ts";
 import { jsonSyntax } from "./json-syntax.ts";
+import { mcpEnvReserved } from "./mcp-env-reserved.ts";
+import { mcpServerFields } from "./mcp-server-fields.ts";
 import { mcpServerType } from "./mcp-server-type.ts";
 import { mcpTopLevel } from "./mcp-top-level.ts";
 import { mcpVersionMatch } from "./mcp-version-match.ts";
@@ -31,6 +33,8 @@ export const rules: readonly Rule[] = [
   mcpVersionMatch,
   pluginManifestMissing,
   mcpServerType,
+  mcpServerFields,
+  mcpEnvReserved,
   schemaViolation,
 ];
 

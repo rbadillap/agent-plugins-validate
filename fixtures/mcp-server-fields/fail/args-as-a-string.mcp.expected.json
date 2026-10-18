@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-server-fields",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.local.args",
+    "current": "\"--port 3000\"",
+    "fix": "use [\"--port\", \"3000\"]",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]
