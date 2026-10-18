@@ -33,3 +33,16 @@ export function specUrl(version: string, section: string): string {
   }
   return `${SPEC_REPOSITORY}/v${version}/spec/${version}.md#${slug(heading)}`;
 }
+
+/**
+ * The label of a spec URL for people: "§7.2.1" for a numbered section, the heading for the others
+ * ("stdio"). Null when the URL isn't one of the sections of a vendored version.
+ */
+export function sectionLabel(url: string): string | null {
+  const anchor = url.split("#")[1];
+  if (anchor === undefined) return null;
+  const heading = headings100.find((h) => slug(h) === anchor);
+  if (heading === undefined) return null;
+  const number = /^\d+(?:\.\d+)*/.exec(heading)?.[0];
+  return number === undefined ? heading : `§${number}`;
+}

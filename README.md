@@ -30,18 +30,20 @@ That's it. No configuration, no tokens, no secrets.
 If something's wrong, a note appears on the exact line of your pull request:
 
 > ❌ **mcp.json, line 6**
-> `mcpServers.docs.type` is `"http"`. Use `"streamable-http"`.
-> Clients that follow the spec skip this server until it's fixed. [Read the spec](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration)
+> mcpServers.docs.type is "http". Use "streamable-http".
+> Clients that follow the spec skip this server until it's fixed. Spec: §7.2.1 https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration
 
 And the run's summary gives you the full picture:
 
 > **Agent Plugins manifests**
+>
 > ✅ `plugin.json` follows the spec.
+>
 > ❌ `mcp.json` has 1 thing to fix.
 >
 > | | File | Field | Now | How to fix | Spec |
 > |---|---|---|---|---|---|
-> | ❌ | mcp.json | `mcpServers.docs.type` | `"http"` | use `"streamable-http"` | [§7.2.1](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration) |
+> | ❌ | `mcp.json` | `mcpServers.docs.type` | `"http"` | use `"streamable-http"` | [§7.2.1](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration) |
 
 When everything is right, the check turns green and the summary simply says so: "Both manifests follow the Agent Plugins spec (1.0.0)."
 
