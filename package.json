@@ -1,0 +1,17 @@
+{
+  "name": "agent-plugins-validate",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Check plugin.json and mcp.json against the Agent Plugins specification.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  }
+}
