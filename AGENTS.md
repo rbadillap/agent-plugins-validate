@@ -48,6 +48,9 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 ## Work
 
 - Issues first: each change starts as an issue with Problem, Behavior, Acceptance criteria, Security notes and Out of scope. Only issues labeled `approved` are built, one PR each.
+- **The issue fixes the predictions.** An issue whose change runs (code, schemas or workflows) states what must be observed: a stimulus and its expected outcome, which can turn out false, e.g. "A PR that changes only `README.md` skips every area, and `gate` passes." Each claim about GitHub's behavior it relies on links to GitHub's public documentation or to a recorded observation. Labeling the issue `approved` approves its predictions too.
+- **Unforeseen decisions go back to the issue.** When the work needs a decision the issue didn't foresee, it's proposed as a comment on the issue before it's built, and the owner accepts it there. A PR carries no decision that isn't in its issue or an accepted comment.
+- These two rules apply to issues approved after #60 is closed. Earlier issues and their PRs are not changed.
 - Commits and PR titles use Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `ci:`, `build:`, `chore:`, `refactor:`). Commits are signed.
 - Merging is the owner's decision.
 
