@@ -8,12 +8,12 @@ A change to the README shouldn't pay for a full build, and a change to a rule mu
 
 | Workflow | Area: runs when these change | Runs |
 | --- | --- | --- |
-| `test-code.yml` | `src/**`, `fixtures/**`, `schemas/**`, `data/**`, `dist/**`, `package.json`, `package-lock.json`, `tsconfig.json`, `biome.json`, `Makefile`, `.npmrc`, `.gitattributes`, and the workflows that run it (`.github/actions/setup/**`, `test-code.yml`, `gate.yml`) | `make lint`, `make test`, `make check-dist` |
+| `test-code.yml` | `src/**`, `fixtures/**`, `schemas/**`, `dist/**`, `package.json`, `package-lock.json`, `tsconfig.json`, `biome.json`, `Makefile`, `.npmrc`, `.gitattributes`, and the workflows that run it (`.github/actions/setup/**`, `test-code.yml`, `gate.yml`) | `make lint`, `make test`, `make check-dist` |
 | `check-schemas.yml` | `schemas/**`, `.github/workflows/schemas.yml` | `make check-schemas` |
 | `audit-workflows.yml` | `.github/**`, `action.yml` | zizmor and actionlint (#4). They run as pinned tools, not through `make`: the one exception to the `make`-only rule |
 | `gate.yml` | everything (`pull_request`, and `push` to `main`) | Detects the changed areas and calls their workflows |
 
-A change to a workflow also runs the area it defines, because the `workflows` area only audits the files: an edit to the setup action (for example a Dependabot bump of `setup-node` or `checkout`) must still install and build. `dist/**`, `schemas/**` and `data/**` are in the `code` area on purpose: `dist/` is what runs in other people's workflows, so a change to it must always be checked against a fresh build, and the bundle embeds the schemas and the SPDX License List. A test in `src/spdx/` checks the SPDX list's `SHA256SUMS`, so a change under `data/` runs it with `make test`.
+A change to a workflow also runs the area it defines, because the `workflows` area only audits the files: an edit to the setup action (for example a Dependabot bump of `setup-node` or `checkout`) must still install and build. `dist/**` and `schemas/**` are in the `code` area on purpose: `dist/` is what runs in other people's workflows, so a change to it must always be checked against a fresh build, and the bundle embeds the schemas.
 
 ## The gate
 

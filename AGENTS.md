@@ -29,13 +29,12 @@ This file is for agents and contributors, and holds rules only. Humans start at 
 ## Engineering rules
 
 - TypeScript strict, ESM, on the `node24` runtime.
-- The engine (`src/engine/`, `src/rules/`, and `src/spdx/`, which it uses) is pure: text in, findings out. Side effects live in exactly these places:
+- The engine (`src/engine/`, `src/rules/`) is pure: text in, findings out. Side effects live in exactly these places:
   - `src/main.ts` reads the inputs and the environment;
   - `src/discover/` reads manifest files;
   - `src/report/` writes the summary, the outputs and the report;
   - `src/github/api.ts` is the only code that uses the network.
 - Schemas live in `schemas/<version>/` with a checksum and their Apache-2.0 notice. Never edit a vendored schema.
-- The SPDX License List is copied into the repository in `data/spdx/<version>/`, with a checksum and its CC0-1.0 notice. Never edit it; [docs/spdx.md](docs/spdx.md) says how to update it.
 - Every rule has pass and fail fixtures in `fixtures/`. Fixtures are minimal and anonymized: no real repository, publisher or server names.
 - The Action validates its own fixtures with itself in CI.
 - Dependencies are minimal, and the PR that adds one justifies it. Versions come from the live registry on the day they're added, and the PR says that date.

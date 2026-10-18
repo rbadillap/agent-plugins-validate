@@ -6,7 +6,7 @@
 BIN   := node_modules/.bin
 ENTRY ?= src/main.ts
 OUT   ?= dist/index.js
-SRC   := $(shell find src -name '*.ts' ! -name '*.test.ts') $(wildcard schemas/*/*.schema.json data/spdx/*/*.json)
+SRC   := $(shell find src -name '*.ts' ! -name '*.test.ts') $(wildcard schemas/*/*.schema.json)
 
 .DEFAULT_GOAL := help
 .PHONY: help install lint format test check-schemas build check-dist

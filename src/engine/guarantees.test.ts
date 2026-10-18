@@ -23,7 +23,7 @@ function sourcesOf(folder: string): { name: string; text: string }[] {
     }));
 }
 
-test("the engine, the rules and spdx import nothing that does IO and don't read the environment", () => {
+test("the engine and the rules import nothing that does IO and don't read the environment", () => {
   const forbidden = [
     /(?:from|import)\s*["'](?:node:)?(?:fs|fs\/promises|net|http|https|http2|dns|child_process|tls|dgram|worker_threads|os)["']/,
     /\bprocess\./,
@@ -32,11 +32,7 @@ test("the engine, the rules and spdx import nothing that does IO and don't read 
     /\bimport\s*\(/,
     /\brequire\s*\(/,
   ];
-  const files = [
-    ...sourcesOf("engine"),
-    ...sourcesOf("rules"),
-    ...sourcesOf("spdx"),
-  ];
+  const files = [...sourcesOf("engine"), ...sourcesOf("rules")];
   assert.ok(files.length > 0);
   for (const { name, text } of files) {
     for (const pattern of forbidden) {
