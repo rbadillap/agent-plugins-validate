@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "license-spdx",
+    "level": "notice",
+    "file": "plugin.json",
+    "field": "license",
+    "current": "string (8 chars)",
+    "fix": "use \"Apache-2.0\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
+    "line": 4
+  }
+]

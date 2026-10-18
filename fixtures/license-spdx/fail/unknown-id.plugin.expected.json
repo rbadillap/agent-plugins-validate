@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "license-spdx",
+    "level": "notice",
+    "file": "plugin.json",
+    "field": "license",
+    "current": "string (11 chars)",
+    "fix": "use an id from the SPDX License List, e.g. \"MIT\", or \"LicenseRef-\" and a name of your own for a license that isn't on the list",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
+    "line": 4
+  }
+]

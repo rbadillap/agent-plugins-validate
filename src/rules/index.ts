@@ -3,6 +3,7 @@ import { extensionsNamespace } from "./extensions-namespace.ts";
 import { extensionsType } from "./extensions-type.ts";
 import { fieldType } from "./field-type.ts";
 import { jsonSyntax } from "./json-syntax.ts";
+import { licenseSpdx } from "./license-spdx.ts";
 import { mcpCommand } from "./mcp-command.ts";
 import { mcpCwd } from "./mcp-cwd.ts";
 import { mcpEnvName } from "./mcp-env-name.ts";
@@ -34,6 +35,7 @@ export const rules: readonly Rule[] = [
   extensionsType,
   extensionsNamespace,
   versionSemver,
+  licenseSpdx,
   mcpTopLevel,
   mcpVersionMatch,
   pluginManifestMissing,

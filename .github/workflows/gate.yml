@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.areas.outputs.code }}
-      schemas: ${{ steps.areas.outputs.schemas }}
+      vendored: ${{ steps.areas.outputs.vendored }}
       workflows: ${{ steps.areas.outputs.workflows }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -55,8 +55,8 @@ jobs:
               echo "$1=false" >> "$GITHUB_OUTPUT"
             fi
           }
-          area code '^(src/|fixtures/|schemas/|dist/)|^(package\.json|package-lock\.json|tsconfig\.json|biome\.json|Makefile|\.npmrc|\.gitattributes)$|^\.github/(actions/setup/|workflows/(test-code|gate)\.yml$)'
-          area schemas '^(schemas/|\.github/workflows/check-schemas\.yml$)'
+          area code '^(src/|fixtures/|schemas/|data/|dist/)|^(package\.json|package-lock\.json|tsconfig\.json|biome\.json|Makefile|\.npmrc|\.gitattributes)$|^\.github/(actions/setup/|workflows/(test-code|gate)\.yml$)'
+          area vendored '^(schemas/|data/|\.github/workflows/check-vendored\.yml$)|^Makefile$'
           area workflows '^(\.github/|action\.yml$)'
 
   code:
@@ -64,10 +64,10 @@ jobs:
     if: needs.changes.outputs.code == 'true'
     uses: $/.github/workflows/test-code.yml
 
-  schemas:
+  vendored:
     needs: changes
-    if: needs.changes.outputs.schemas == 'true'
-    uses: $/.github/workflows/check-schemas.yml
+    if: needs.changes.outputs.vendored == 'true'
+    uses: $/.github/workflows/check-vendored.yml
 
   workflows:
     needs: changes
@@ -76,7 +76,7 @@ jobs:
 
   gate:
     if: always()
-    needs: [changes, code, schemas, workflows]
+    needs: [changes, code, vendored, workflows]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

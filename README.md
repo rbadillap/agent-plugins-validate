@@ -210,7 +210,7 @@ A new check arrives as a `warning` (or `notice`) in a minor release, and becomes
 
 ### Specification
 
-The checks follow [Agent Plugins 1.0.0](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md). The official schemas ship inside this Action, in [`schemas/`](schemas/), under their own Apache-2.0 license ([notice](schemas/1.0.0/NOTICE.md), [license text](schemas/1.0.0/LICENSE)). A manifest that declares a version this Action doesn't support gets one finding saying so, never a guess.
+The checks follow [Agent Plugins 1.0.0](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md). The official schemas ship inside this Action, in [`schemas/`](schemas/), under their own Apache-2.0 license ([notice](schemas/1.0.0/NOTICE.md), [license text](schemas/1.0.0/LICENSE)). So does the [SPDX License List](https://github.com/spdx/license-list-data) that `license` is checked against, in [`data/spdx/`](data/spdx/), under CC0-1.0 ([notice](data/spdx/3.29.0/NOTICE.md), [license text](data/spdx/3.29.0/LICENSE)). A manifest that declares a version this Action doesn't support gets one finding saying so, never a guess.
 
 ## License
 
