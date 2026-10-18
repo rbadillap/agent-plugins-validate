@@ -189,7 +189,7 @@ jobs:
 - **No proof, no issue.** When the Action can't show that a check passed before, it opens nothing: on the first push of a branch, after a force-push, or for a manifest that didn't exist before.
 - **Errors and warnings only.** Notices never open issues.
 - **One issue per problem, never repeated.** Each issue carries the `agent-plugins-validate` label and a hidden fingerprint of the check, file and field, so the next run finds it instead of opening another. The Action only ever acts on issues it opened itself: a label and a fingerprint on someone else's issue aren't enough. If a fixed problem comes back, its issue is reopened. An issue you closed as "not planned" stays closed.
-- **Kept current.** If the value changes while the issue is open, the Action updates the issue and adds one short comment.
+- **Kept current.** If the value changes while the issue is open, the Action updates the issue and adds one short comment. It compares what the finding shows about the value, and for text that is its size (`string (54 chars)`), so an edit that keeps the same size isn't noticed.
 - **Closed by the fix.** When the check passes again, the Action closes the issue with a comment naming the commit that fixed it. If the file is no longer checked at all, the issue stays open, and the summary says why.
 - **Small and bounded.** At most 10 new issues and 50 changes per run. Anything beyond that is listed in the summary.
 - **Rate limits or outages** on GitHub's side skip the issues for that run, with a note in the summary. Your results don't change.
