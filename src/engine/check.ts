@@ -4,7 +4,10 @@ import {
   ruleSection,
   schemaViolation,
 } from "../rules/index.ts";
+import { manifestContainment } from "../rules/manifest-containment.ts";
+import { mcpComponentLocation } from "../rules/mcp-component-location.ts";
 import { selectServerType } from "../rules/mcp-server-type.ts";
+import { pluginManifestMissing } from "../rules/plugin-manifest-missing.ts";
 import { declaredVersion } from "../rules/schema-version.ts";
 import { describeValue, fieldPath, truncate } from "./format.ts";
 import type { Locator, Position } from "./locate.ts";
@@ -18,6 +21,7 @@ import type {
   Claim,
   FileKind,
   Finding,
+  ManifestEntry,
   ParseResult,
   PathPart,
   PluginInput,
@@ -250,6 +254,58 @@ function compareFindings(a: Finding, b: Finding): number {
   return 0;
 }
 
+const MISSING_PLUGIN_FIX =
+  "add plugin.json at the repository root, or set the manifests input to where your plugin lives";
+
+/** Reports a file that discovery couldn't hand over, with the rule that owns its state. */
+function reportUnreadable(
+  kind: FileKind,
+  entry: Extract<ManifestEntry, { unreadable: string }>,
+  newest: string,
+  out: Inspection,
+): void {
+  const name = kind === "plugin" ? "plugin.json" : "mcp.json";
+  let rule: Rule =
+    kind === "plugin" ? manifestContainment : mcpComponentLocation;
+  let fix =
+    entry.unreadable === "outside-root"
+      ? "replace the symlink with the file itself"
+      : `make ${name} a regular file in the plugin root`;
+  if (entry.unreadable === "missing") {
+    rule = pluginManifestMissing;
+    fix = MISSING_PLUGIN_FIX;
+  }
+  const problem: Problem = {
+    path: [],
+    current: undefined,
+    ...(entry.detail === undefined ? {} : { currentText: entry.detail }),
+    fix,
+  };
+  out.result.findings.push(
+    toFinding(rule, kind, entry.path, newest, problem, undefined),
+  );
+  out.result.files.push({ file: entry.path, kind, specVersion: null });
+}
+
+function checkEntry(
+  kind: FileKind,
+  entry: ManifestEntry,
+  registry: SchemaRegistry,
+  rules: readonly Rule[],
+  sibling: RuleContext["sibling"],
+  out: Inspection,
+): void {
+  if ("text" in entry) {
+    checkFile(kind, entry, registry, rules, sibling, out);
+    return;
+  }
+  const newest = registry.versions[0];
+  if (newest === undefined) {
+    throw new Error("The schema registry has no versions");
+  }
+  reportUnreadable(kind, entry, newest, out);
+}
+
 function checkFile(
   kind: FileKind,
   entry: { path: string; text: string },
@@ -325,17 +381,20 @@ export function inspect(
   rules: readonly Rule[] = allRules,
 ): Inspection {
   const out: Inspection = { result: { findings: [], files: [] }, claims: [] };
-  if (input.plugin !== undefined)
-    checkFile("plugin", input.plugin, registry, rules, undefined, out);
+  if (input.plugin !== undefined) {
+    checkEntry("plugin", input.plugin, registry, rules, undefined, out);
+  }
   if (input.mcp !== undefined) {
+    // A plugin.json that exists but can't be read (or that discovery already reported as missing)
+    // counts as present: it is reported once, on its own.
     const sibling = {
       present: input.plugin !== undefined,
       specVersion:
-        input.plugin === undefined
+        input.plugin === undefined || !("text" in input.plugin)
           ? null
           : declaredVersionOf(input.plugin.text, "plugin", registry.versions),
     };
-    checkFile("mcp", input.mcp, registry, rules, sibling, out);
+    checkEntry("mcp", input.mcp, registry, rules, sibling, out);
   }
   out.result.findings.sort(compareFindings);
   return out;

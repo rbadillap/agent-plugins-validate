@@ -3,7 +3,9 @@ import { extensionsNamespace } from "./extensions-namespace.ts";
 import { extensionsType } from "./extensions-type.ts";
 import { fieldType } from "./field-type.ts";
 import { jsonSyntax } from "./json-syntax.ts";
+import { manifestContainment } from "./manifest-containment.ts";
 import { mcpCommand } from "./mcp-command.ts";
+import { mcpComponentLocation } from "./mcp-component-location.ts";
 import { mcpCwd } from "./mcp-cwd.ts";
 import { mcpEnvName } from "./mcp-env-name.ts";
 import { mcpEnvReserved } from "./mcp-env-reserved.ts";
@@ -45,6 +47,8 @@ export const rules: readonly Rule[] = [
   mcpCwd,
   mcpUrl,
   mcpHeaders,
+  manifestContainment,
+  mcpComponentLocation,
   schemaViolation,
 ];
 

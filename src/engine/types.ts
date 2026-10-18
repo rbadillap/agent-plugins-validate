@@ -17,10 +17,27 @@ export interface Finding {
   line?: number;
 }
 
+/**
+ * A manifest file the engine is given: its text, or the reason it can't be read. Discovery decides
+ * which, so the engine never touches the filesystem.
+ */
+export type ManifestEntry =
+  | { path: string; text: string }
+  | {
+      path: string;
+      /**
+       * `outside-root`: a symlink that resolves outside its plugin root. `not-a-file`: a directory,
+       * a FIFO, a device. `missing`: the file isn't there, and the input said it should be.
+       */
+      unreadable: "outside-root" | "not-a-file" | "missing";
+      /** Describes the state for `current`, e.g. "directory" or "symbolic link (21 chars)". */
+      detail?: string;
+    };
+
 export interface PluginInput {
   root: string;
-  plugin?: { path: string; text: string };
-  mcp?: { path: string; text: string };
+  plugin?: ManifestEntry;
+  mcp?: ManifestEntry;
 }
 
 export interface CheckResult {
