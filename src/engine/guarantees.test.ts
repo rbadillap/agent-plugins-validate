@@ -187,3 +187,17 @@ test("rules are found by id, including schema-violation, with their effect", () 
   assert.match(ruleEffect(violation, "plugin"), /reject the plugin/);
   assert.equal(ruleById("nope"), undefined);
 });
+
+test("only src/discover, the reporters and the tests read files, and the engine never does", () => {
+  const allowed = ["discover", "report", "github", "testing"];
+  const folders = readdirSync(srcDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !allowed.includes(entry.name))
+    .map((entry) => entry.name);
+  assert.ok(folders.includes("engine") && folders.includes("rules"));
+  const reading = /(?:from|import)\s*["'](?:node:)?(?:fs|fs\/promises)["']/;
+  for (const folder of folders) {
+    for (const { name, text } of sourcesOf(folder)) {
+      assert.ok(!reading.test(text), `${name} reads files`);
+    }
+  }
+});
