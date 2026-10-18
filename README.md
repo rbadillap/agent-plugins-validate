@@ -1,10 +1,11 @@
 # agent-plugins-validate
 
+[![gate](https://github.com/rbadillap/agent-plugins-validate/actions/workflows/gate.yml/badge.svg?branch=main)](https://github.com/rbadillap/agent-plugins-validate/actions/workflows/gate.yml)
+[![release](https://img.shields.io/github/v/release/rbadillap/agent-plugins-validate)](https://github.com/rbadillap/agent-plugins-validate/releases/latest)
+
 **Make sure your Agent Plugin actually loads, before anyone installs it.**
 
-This GitHub Action reads your `plugin.json` and `mcp.json` and checks them against the [Agent Plugins specification](https://agent-plugins.org). When something's wrong, it tells you exactly what, and how to fix it, right in your pull request.
-
-> **Status:** in design. There is no release yet. This page describes v1 as it will ship, and the roadmap is in the [issues](https://github.com/rbadillap/agent-plugins-validate/issues).
+An Agent Plugin is a package of skills and MCP servers that AI clients load, described by a `plugin.json` and an `mcp.json`. This GitHub Action checks both against the [Agent Plugins specification](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md). When something's wrong, it tells you exactly what, and how to fix it, right in your pull request.
 
 ## Get started in one minute
 
@@ -20,7 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: rbadillap/agent-plugins-validate@<full-commit-sha> # v1.0.0
+        with:
+          persist-credentials: false
+      - uses: rbadillap/agent-plugins-validate@32d0b41fe1d3881049730c9120660298adcec37d # v1.0.0
 ```
 
 That's it. No configuration, no tokens, no secrets.
@@ -29,11 +32,15 @@ That's it. No configuration, no tokens, no secrets.
 
 If something's wrong, a note appears on the exact line of your pull request:
 
-> ❌ **mcp.json, line 6**
+![A failed check on line 9 of mcp.json, in the pull request's Files changed tab](docs/images/annotation.png)
+
+> ❌ **mcp.json, line 9**
 > mcpServers.docs.type is "http". Use "streamable-http".
 > Clients that follow the spec skip this server until it's fixed. Spec: §7.2.1 https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration
 
 And the run's summary gives you the full picture:
+
+![The job summary: plugin.json follows the spec, mcp.json has 1 thing to fix, in a table with the field, its value, how to fix it and the spec section](docs/images/summary.png)
 
 > **Agent Plugins manifests**
 >
@@ -47,12 +54,41 @@ And the run's summary gives you the full picture:
 
 When everything is right, the check turns green and the summary simply says so: "Both manifests follow the Agent Plugins spec (1.0.0)."
 
+## What it checks
+
+Every rule cites a section of the spec. The most common ones, by file:
+
+| File | Rule | Level | What it checks |
+|---|---|---|---|
+| `plugin.json` | `required-fields` | error | `name` is there |
+| `plugin.json` | `plugin-name` | error | `name` is lowercase kebab-case, up to 64 characters |
+| `plugin.json` | `field-type` | error | metadata fields have the right type |
+| `plugin.json` | `unknown-field` | warning | no top-level field the spec doesn't define |
+| `plugin.json` | `version-semver` | notice | `version` is a Semantic Versioning string |
+| `mcp.json` | `mcp-top-level` | error | `mcpServers` is there |
+| `mcp.json` | `mcp-server-type` | error | `type` is `stdio`, `streamable-http` or `sse` |
+| `mcp.json` | `mcp-server-fields` | error | each server has the fields of its type |
+| `mcp.json` | `mcp-url` | error | `url` is an absolute `http` or `https` URL, without credentials |
+| `mcp.json` | `mcp-env-name` | warning | no `env` name with `=` in it |
+| both | `json-syntax` | error | the file is valid JSON |
+| both | `schema-version` | error | `$schema` names a supported version |
+
+All the rules, with what each one checks and its spec section, are in [docs/rules.md](docs/rules.md).
+
+### Levels
+
+Levels follow what the spec says a client does with the problem:
+
+- **Error:** a client rejects the plugin, turns off its MCP servers, or skips a server. Fails the check.
+- **Warning:** the spec requires it, but a client reports the problem and keeps loading, such as an unknown top-level field in `plugin.json` ([§5.2](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object)). Doesn't fail.
+- **Notice:** something the spec recommends (SHOULD) but doesn't require, such as a Semantic Versioning `version` ([§10.2](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#102-plugin-versions)). Doesn't fail.
+
 ## Questions you might have
 
 <details>
 <summary><b>Does it send my code anywhere?</b></summary>
 
-No. It runs inside your own workflow, and the official spec files are bundled with it, so it never needs to download anything or call any server. The one exception is opt-in: if you turn on [issues](#issues), it talks to GitHub's own API, and to nothing else.
+No. It runs inside your own workflow, and the official spec files are bundled with it, so it never needs to download anything. See [Permissions](#permissions) for the one opt-in exception.
 
 </details>
 
@@ -76,7 +112,7 @@ No. Reading your files is all it needs. If you turn on issues, it uses the token
 Tell it where your `plugin.json` is. It checks the `mcp.json` next to it automatically:
 
 ```yaml
-      - uses: rbadillap/agent-plugins-validate@<full-commit-sha> # v1.0.0
+      - uses: rbadillap/agent-plugins-validate@32d0b41fe1d3881049730c9120660298adcec37d # v1.0.0
         with:
           manifests: plugins/*/plugin.json
 ```
@@ -86,16 +122,14 @@ Tell it where your `plugin.json` is. It checks the `mcp.json` next to it automat
 <details>
 <summary><b>Can it warn me when something breaks on my main branch?</b></summary>
 
-Yes, if you want it to. Turn on `open-issues`, and when a manifest that used to be fine breaks on your default branch, you get one issue for it. When you fix it, the issue closes itself. It never opens the same issue twice, and it never opens issues for problems you already had. [How issues work](#issues)
+Yes, if you want it to. Turn on `open-issues`, and when a manifest that used to be fine breaks on your default branch, you get one issue for it. When you fix it, the issue closes itself. It never opens the same issue twice, and it never opens issues for problems you already had. [How to turn it on](#open-issues-on-regressions-optional)
 
 </details>
 
 <details>
-<summary><b>Which version should I use: `@v1` or a commit SHA?</b></summary>
+<summary><b>Can my scripts or an AI agent read the results?</b></summary>
 
-Both work, and you can choose.
-- `@v1` gets every fix automatically, so you trust each release as it lands.
-- A commit SHA runs exactly the code you reviewed, and nobody can change it under you. Dependabot keeps it up to date. This is the one we recommend.
+Yes. Every run writes a JSON report with one entry per finding, and the `report` output holds its path. [The report](docs/report.md)
 
 </details>
 
@@ -107,8 +141,8 @@ Both work, and you can choose.
 
 | Input | Default | What it does |
 |---|---|---|
-| `manifests` | `plugin.json`<br>`mcp.json` | Files or patterns to check, one per line, relative to the repository root. Only files named `plugin.json` or `mcp.json` are read. The `mcp.json` next to each `plugin.json` is always checked with it. A missing `mcp.json` is fine: it's optional in the spec. A line that matches no file fails the step with a message naming that line. |
-| `open-issues` | `false` | Open an issue when something breaks on your default branch. See [Issues](#issues). |
+| `manifests` | `plugin.json`<br>`mcp.json` | Files or patterns to check, one per line, from the repository root. Only files named `plugin.json` or `mcp.json` are read. The `mcp.json` next to each `plugin.json` is always checked with it, and a missing one is fine. **A line that matches no file fails the step**, with a message naming that line. |
+| `open-issues` | `false` | Open an issue when something breaks on your default branch. [How](#open-issues-on-regressions-optional) |
 | `token` | `${{ github.token }}` | Used only when `open-issues` is on. You don't need to set it. |
 
 ### Outputs
@@ -117,53 +151,41 @@ Both work, and you can choose.
 |---|---|---|
 | `valid` | `true` | No errors. Notices and warnings don't change it. |
 | `findings` | `2` | Everything found, at any level. |
-| `report` | `/home/runner/work/_temp/agent-plugins-validate/report.json` | Every finding as data, for scripts and AI agents. |
+| `report` | `/home/runner/work/_temp/agent-plugins-validate/<step>/report.json` | Path to every finding as JSON. |
 
-Each finding in `report` has seven fields:
+```yaml
+      - id: manifests
+        uses: rbadillap/agent-plugins-validate@32d0b41fe1d3881049730c9120660298adcec37d # v1.0.0
+      - if: always() && steps.manifests.outputs.findings != '0'
+        run: echo "Something to look at, see the summary of this run"
+```
 
-| Field | Example | Meaning |
-|---|---|---|
-| `rule` | `mcp-server-type` | Stable id. It never changes meaning. |
-| `level` | `error` | `error`, `warning` or `notice` |
-| `file` | `mcp.json` | Path from the repository root |
-| `field` | `mcpServers.docs.type` | Dotted path inside the file. A key that is not a plain name (letters, digits, `_`, `.`, `-`, up to 64) is written `[…]`; the finding's line says where it is |
-| `current` | `string (54 chars)` | What the value is. Text from your files is described by its size, never repeated, because it can hold a secret. Numbers, booleans and plain names (a plugin name, a namespace, a keyword, a server, header or variable name, a transport such as `"http"`) are shown as they are. The values of `env`, `headers`, `url`, `command`, `args` and `cwd` never are. A missing value is `(missing)` |
-| `fix` | `use "streamable-http"` | What to change, concretely, with a generic example. It never repeats text from your files either |
-| `spec` | link to §7.2.1 | The section of the spec that requires it |
-
-A finding describes your text and never repeats it, so a secret in a manifest can't end up in a log, an annotation or an issue. There is one exception, for a URL that holds a password: `current` shows `https://u****:p****@host`, which is the first character of the user, the first character of the password (each followed by `****`, because a token is often sent as the user) and the host, so you can tell which credential to rotate. A URL that a client cannot use but that still holds `user:password@` gets the same advice, with `current` described like any text. The Action finds it with a URL parser, not by guessing, and it shows nothing else of the URL (no path, no query).
-
-### Levels
-
-Levels follow what the spec says a client does with the problem:
-
-- **Error:** a client rejects the plugin, turns off its MCP servers, or skips a server. Fails the check.
-- **Warning:** the spec requires it, but a client reports the problem and keeps loading, such as an unknown top-level field in `plugin.json` ([§5.2](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object)). Doesn't fail.
-- **Notice:** something the spec recommends (SHOULD) but doesn't require, such as a Semantic Versioning `version` ([§10.2](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#102-plugin-versions)). Doesn't fail.
+The format of each finding, and the [JSON Schema](docs/report.schema.json) of the report, are in [docs/report.md](docs/report.md).
 
 ### Permissions
 
-| Permission | When | Why | Without it | What it never does with it |
-|---|---|---|---|---|
-| `contents: read` | Always | Lets `actions/checkout` fetch your code, so the Action can read your manifests. With `open-issues` on, it also reads the previous version of the same manifests. | `actions/checkout` can't fetch a private repository. With `open-issues` on, no regression can be proven, so no issue opens. | Write, push, or read anything but your manifests |
-| `issues: write` | Only with `open-issues` | Open, update and close its own issues, and create its label | The summary and a warning say the token can't write issues. Results don't change, and the check doesn't fail for it. | Touch issues it didn't open, or comment anywhere else |
+This is the one place for what the Action can reach.
 
-With `open-issues` on, it reads the previous version of your manifests through GitHub's API. That's how it tells a new problem from an old one. It never talks to any other server.
+| Permission | When | Why | Without it |
+|---|---|---|---|
+| `contents: read` | Always | `actions/checkout` fetches your code. With `open-issues`, it also reads the previous manifests. | A private repository can't be checked out. No regression can be proven. |
+| `issues: write` | Only with `open-issues` | Open, update and close its own issues, and create its label. | A warning says so. Results don't change and nothing fails. |
 
-### What this Action never asks for
+- **No network.** With `open-issues` off, the Action makes no HTTP, DNS or socket use at all. With it on, it talks only to GitHub's API, to read the previous version of your manifests and to manage its own issues. No telemetry. The schemas are bundled, so nothing is downloaded.
+- **No secrets.** It reads none and has no token of its own. With `open-issues` on, it uses the `token` input, which defaults to the workflow's `GITHUB_TOKEN`.
+- **Small writes.** The step outputs, the job summary, the JSON report in the runner's temporary directory and, only if you opt in, its own issues. It never comments on pull requests, pushes commits or touches issues it didn't open.
+- **Your files.** It reads only files named `plugin.json` or `mcp.json` inside your checkout, never follows a link out of it, and never runs what it reads. What your manifests contain is treated as untrusted text in annotations, summaries and issues.
 
-- **Secrets.** It needs none and reads none.
-- **Tokens of its own.** It uses the workflow's `GITHUB_TOKEN` through the `token` input, and only when `open-issues` is on.
-- **Network access.** With `open-issues` off, it makes no network calls at all. With it on, it talks only to GitHub's API. No telemetry.
-- **Pull request permissions.** It never comments on pull requests. The notes on each line and the summary cover them.
+It has no opinion on how your MCP servers authenticate or confirm writes. The spec leaves those to the client.
 
-It also has no opinion on how your MCP servers authenticate or confirm writes. The spec leaves those to the client, so this Action leaves them alone.
+### Open issues on regressions (optional)
 
-### Issues
+<a id="issues"></a>
 
 Issues are off by default. To turn them on, give the job `issues: write` and set `open-issues`:
 
 ```yaml
+name: agent-plugins
 on:
   push:
 permissions:
@@ -177,30 +199,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: rbadillap/agent-plugins-validate@<full-commit-sha> # v1.0.0
+        with:
+          persist-credentials: false
+      - uses: rbadillap/agent-plugins-validate@32d0b41fe1d3881049730c9120660298adcec37d # v1.0.0
         with:
           open-issues: true
 ```
 
-- **Only on your default branch.** The branch comes from GitHub's event data, so it doesn't have to be `main`. On other branches and on pull requests, `open-issues` does nothing, and the summary doesn't mention issues on pull requests.
-- **Only on pushes.** A push to the default branch can open an issue. Force-pushes and manual runs only update and close existing ones, and scheduled runs do nothing.
-- **One run at a time.** The `concurrency` group above keeps two pushes from racing to open the same issue.
-- **Only real regressions.** A regression is a check that passed at the commit before the push and fails now. The Action proves it by checking the previous version of your manifests: it reads both of a plugin's files (`plugin.json` and `mcp.json`) at that commit, because some checks compare them. Problems that already existed when you turned issues on appear in the summary, never as issues.
-- **No proof, no issue.** When the Action can't show that a check passed before, it opens nothing: on the first push of a branch, after a force-push, or for a manifest that didn't exist before. The one check that compares a plugin's two files, the matching `$schema` versions (`mcp-version-match`), can't fail while 1.0.0 is the only supported version, so no issue depends on it yet.
+- **Only on your default branch**, whatever its name. On other branches and on pull requests it does nothing.
+- **Only real regressions:** a check that passed at the commit before the push and fails now. No proof, no issue.
+- **One issue per problem**, never repeated, with the `agent-plugins-validate` label. It only ever touches issues it opened.
+- **Closed by the fix.** When the check passes again, the issue closes with a comment naming the commit.
 - **Errors and warnings only.** Notices never open issues.
-- **One issue per problem, never repeated.** Each issue carries the `agent-plugins-validate` label and a hidden marker with four attributes (a fingerprint of the check, file and field, a hash of the value as the finding shows it, a hash of the file path, and the check's id), so the next run finds it instead of opening another. The Action only ever acts on issues it opened itself: it must have the label, a well-formed marker and the Action's own author (the user of your personal token, or `github-actions[bot]` for the workflow's token). A label and a marker on someone else's issue, or on an issue another bot opened, aren't enough. The title holds the file and the field in code spans. If a fixed problem comes back, its issue is reopened, but only if it was closed as completed: an issue you closed as "not planned" (or in any other way) stays closed.
-- **Kept current.** If the value changes while the issue is open, the Action updates the issue and adds one short comment. It compares what the finding shows about the value, and for text that is its size (`string (54 chars)`), so an edit that keeps the same size isn't noticed.
-- **Closed by the fix.** When the check passes again, the Action closes the issue with a comment naming the commit that fixed it. If the file is no longer checked at all, the issue stays open, and the summary says why.
-- **Small and bounded.** At most 10 new issues and 50 changes per run. Anything beyond that is listed in the summary.
-- **Rate limits or outages** on GitHub's side skip the issues for that run, with a note in the summary. Your results don't change.
-- **Without `issues: write`**, the summary and a warning say so. Your results don't change, and the check doesn't fail for it.
 
-### Releases and pinning
+How it decides, what it tracks and its limits are in [docs/issues.md](docs/issues.md).
+
+### Pinning and updates
 
 | Pin | Example | You get |
 |---|---|---|
-| Commit SHA (recommended) | `rbadillap/agent-plugins-validate@<full-commit-sha> # v1.0.0` | Exactly the code you reviewed. A SHA can't be moved to point at different code. Dependabot updates it and keeps the version comment current. |
+| Commit SHA (recommended) | `rbadillap/agent-plugins-validate@32d0b41…cec37d # v1.0.0` | Exactly the code you reviewed. A SHA can't be moved to point at different code. |
 | Major tag | `rbadillap/agent-plugins-validate@v1` | Every v1 fix without touching your workflow. The `v1` tag moves with each release. |
+
+To keep a SHA up to date, let Dependabot open the pull requests. It updates the SHA and the version comment together. Add this to `.github/dependabot.yml`:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+```
+
+The Marketplace's "Use latest version" button gives a tag, not a SHA. Replace the tag with the commit it points to, as above.
 
 Every release is immutable and has a build attestation. To check that the `dist/index.js` you run was built by this repository's release workflow, download it from the tag you use and verify it ([how releases are made](docs/releasing.md)):
 
@@ -210,7 +242,30 @@ gh attestation verify dist/index.js --repo rbadillap/agent-plugins-validate
 
 A new check arrives as a `warning` (or `notice`) in a minor release, and becomes an `error` only in the next major release.
 
-### Specification
+### Troubleshooting
+
+<details>
+<summary><b><code>manifests line 1: "plugin.json" matched no file</code></b></summary>
+
+A line of `manifests` matches nothing in the checkout. The line is quoted in the message. Check its spelling and that the path starts at the repository root, and that `actions/checkout` runs before the Action. Only files named `plugin.json` or `mcp.json` can match.
+
+</details>
+
+<details>
+<summary><b><code>Issues: on, but the token can't write issues. Add issues: write to the job's permissions.</code></b></summary>
+
+`open-issues` is on, and the job's token can't write issues. Add `issues: write` under `permissions:` of the job or the workflow. Nothing else changes, and the check doesn't fail for it.
+
+</details>
+
+<details>
+<summary><b><code>Issues: skipped, GitHub's API rate limit was reached. They'll catch up on the next push.</code></b></summary>
+
+GitHub's API limit was reached during this run. The issues for it are skipped, and the next push to the default branch catches up. Your results aren't affected.
+
+</details>
+
+### Specification and bundled schemas
 
 The checks follow [Agent Plugins 1.0.0](https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md). The official schemas ship inside this Action, in [`schemas/`](schemas/), under their own Apache-2.0 license ([notice](schemas/1.0.0/NOTICE.md), [license text](schemas/1.0.0/LICENSE)). A manifest that declares a version this Action doesn't support gets one finding saying so, never a guess.
 
