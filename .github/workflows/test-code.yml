@@ -1,4 +1,4 @@
-name: code
+name: test-code
 
 on: workflow_call
 
@@ -6,7 +6,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: code-${{ github.ref }}
+  group: test-code-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

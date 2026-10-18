@@ -1,4 +1,4 @@
-name: schemas
+name: check-schemas
 
 on: workflow_call
 
@@ -6,7 +6,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: schemas-${{ github.ref }}
+  group: check-schemas-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

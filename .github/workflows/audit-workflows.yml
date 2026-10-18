@@ -1,4 +1,4 @@
-name: workflows
+name: audit-workflows
 
 on: workflow_call
 
@@ -6,7 +6,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: workflows-${{ github.ref }}
+  group: audit-workflows-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
