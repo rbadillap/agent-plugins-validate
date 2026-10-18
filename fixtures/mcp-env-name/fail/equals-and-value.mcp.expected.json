@@ -1,0 +1,22 @@
+[
+  {
+    "rule": "mcp-env-name",
+    "level": "warning",
+    "file": "mcp.json",
+    "field": "mcpServers.s.env[…]",
+    "current": "name (7 chars) with \"=\"",
+    "fix": "remove this entry: env values are visible package data, and the spec forbids credentials in them (§9.2). Let the server get the credential through its own sign-in or a client setting. Rotate it: removing it from the file doesn't remove it from the repository's history.",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#92-placeholder-expansion",
+    "line": 4
+  },
+  {
+    "rule": "mcp-env-name",
+    "level": "warning",
+    "file": "mcp.json",
+    "field": "mcpServers.s.env[…]",
+    "current": "name (7 chars) with \"=\"",
+    "fix": "remove this entry: env values are visible package data, and the spec forbids credentials in them (§9.2). Let the server get the credential through its own sign-in or a client setting. Rotate it: removing it from the file doesn't remove it from the repository's history.",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#92-placeholder-expansion",
+    "line": 4
+  }
+]

@@ -342,12 +342,13 @@ test("no finding repeats free text: the user name and the password never appear 
     for (const [placement, run] of Object.entries(PLACEMENTS)) {
       const findings = run(value) as {
         rule: string;
+        field: string;
         current: string;
         fix: string;
       }[];
       for (const finding of findings) {
         const where = `${placement}: ${JSON.stringify(value)}`;
-        for (const text of [finding.current, finding.fix]) {
+        for (const text of [finding.current, finding.fix, finding.field]) {
           assert.doesNotMatch(text, /s3cr3t/, where);
           assert.ok(!text.includes(value.trim()), where);
           assert.doesNotMatch(text, /x@|host\.example\.com\/mcp/, where);
@@ -504,6 +505,50 @@ test("env: a pasted NAME=value is flagged without repeating the value", () => {
     );
   }
   assert.doesNotMatch(JSON.stringify(findings), /abc123secret|weird/);
+});
+
+test("env: NAME=value, NAME= and =value each give one warning, and none of the key is shown", () => {
+  const keys = [
+    "EXAMPLE_TOKEN=abc123secret",
+    "EXAMPLE_TOKEN=",
+    "=abc123secret",
+  ];
+  for (const key of keys) {
+    for (const value of ["", "x"]) {
+      const findings = checkServers({
+        s: {
+          type: "stdio",
+          command: "node",
+          env: { [key]: value, EXAMPLE_MCP_CACHE_DIR: "x" },
+        },
+      });
+      const where = `${JSON.stringify(key)}: ${JSON.stringify(value)}`;
+      // Only a warning, so `valid` stays true.
+      assert.deepEqual(
+        findings.map((f) => [f.rule, f.level, f.field]),
+        [["mcp-env-name", "warning", "mcpServers.s.env[…]"]],
+        where,
+      );
+      for (const finding of findings) {
+        for (const text of [finding.current, finding.fix, finding.field]) {
+          assert.doesNotMatch(text, /EXAMPLE_TOKEN|abc123secret/, where);
+        }
+      }
+    }
+  }
+});
+
+test("env: a plain name gives nothing", () => {
+  assert.deepEqual(
+    checkServers({
+      s: {
+        type: "stdio",
+        command: "node",
+        env: { EXAMPLE_MCP_CACHE_DIR: "cache" },
+      },
+    }),
+    [],
+  );
 });
 
 test("headers: a pasted Name: value keeps only a plain name", () => {
