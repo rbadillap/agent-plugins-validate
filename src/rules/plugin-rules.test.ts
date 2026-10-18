@@ -88,7 +88,7 @@ test("the spec's valid names pass and its invalid names fail", () => {
   }
 });
 
-test("notice and warning rules never mix up with errors for a clean manifest", () => {
+test("a clean manifest with every metadata field has no findings", () => {
   assert.deepEqual(
     checkPlugin({
       name: "example-plugin",
