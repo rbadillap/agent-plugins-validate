@@ -9,7 +9,7 @@ OUT   ?= dist/index.js
 SRC   := $(shell find src -name '*.ts' ! -name '*.test.ts') $(wildcard schemas/*/*.schema.json data/*/*/*.json)
 
 .DEFAULT_GOAL := help
-.PHONY: help install lint format test check-vendored build check-dist
+.PHONY: help install lint format test check-schemas build check-dist
 
 help:
 	@awk 'BEGIN { FS = ":.*## " } \
@@ -37,9 +37,10 @@ format: install ## Format the code and apply Biome's safe fixes
 test: install ## Run the tests
 	@node --test 'src/**/*.test.ts'
 
-# Each vendored folder holds data files, their SHA256SUMS, a LICENSE and a NOTICE.md. Every data file
-# must be listed in SHA256SUMS: a file that isn't would ship unchecked.
-check-vendored: ## Fail if a vendored schema or SPDX list differs from its checksum, or isn't listed
+# Each vendored folder (schemas/<version>/, data/spdx/<version>/) holds data files, their SHA256SUMS,
+# a LICENSE and a NOTICE.md. Every data file must be listed in SHA256SUMS: one that isn't would ship
+# unchecked.
+check-schemas: ## Fail if a vendored schema or the SPDX list differs from its checksum, or isn't listed
 	@for dir in schemas/*/ data/spdx/*/; do \
 		(cd "$$dir" && shasum -a 256 -c SHA256SUMS) || exit 1; \
 		listed=$$(wc -l < "$${dir}SHA256SUMS" | tr -d ' '); \

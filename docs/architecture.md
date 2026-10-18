@@ -48,6 +48,7 @@ Each rule has fixtures in `fixtures/<rule-id>/`: at least one manifest that pass
 | `src/discover/` | Turns patterns into plugin roots safely. The only code that reads manifest files |
 | `src/engine/` | Parsing, version selection, schema validation, error translation |
 | `src/rules/` | One module per rule |
+| `src/spdx/` | The SPDX License List and a parser for SPDX license expressions, used by `license-spdx`. Pure, and knows nothing of findings |
 | `src/report/` | Annotations, job summary, outputs, JSON report. The only code that writes files |
 | `src/github/` | Opt-in issues. `api.ts` is the only code that talks to the network |
 | `schemas/<version>/` | Vendored official schemas, their checksum and Apache-2.0 notice |

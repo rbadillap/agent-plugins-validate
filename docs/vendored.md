@@ -13,7 +13,7 @@ Each folder holds its data files, plus:
 - `LICENSE`: the license text, copied from the same tag;
 - `NOTICE.md`: the source, tag, commit, date fetched and license.
 
-`make check-vendored` recomputes every `SHA256SUMS` and fails on any mismatch, or on a data file that no checksum line lists. CI runs it whenever a file under `schemas/` or `data/` changes. Never edit a vendored file: update it from a new tag instead.
+`make check-schemas` recomputes every `SHA256SUMS` and fails on any mismatch, or on a data file that no checksum line lists. CI runs it whenever a file under `schemas/` or `data/` changes. Never edit a vendored file: update it from a new tag instead.
 
 Release tags only. Never fetch from a branch, and never vendor a draft. In the PR, state the tag, the commit and the date.
 
@@ -29,5 +29,5 @@ Dependabot doesn't cover the list, so it's updated by hand. The SPDX License Lis
 2. Create `data/spdx/<X.Y.Z>/` with `json/licenses.json` and `json/exceptions.json` from that tag, and `text/CC0-1.0.txt` from the same tag as `LICENSE`.
 3. Write `SHA256SUMS` in that folder: `shasum -a 256 licenses.json exceptions.json > SHA256SUMS`.
 4. Write `NOTICE.md` like the previous version's, with the new tag, commit and date.
-5. Point the imports in `src/rules/spdx-list.ts` at the new folder, and delete the old folder: only one list ships, and a test checks that the folder matches the list in use.
-6. Run `make check-vendored`, `make test` and `make build`. A test or fixture that fails because an id was added, deprecated or removed is a change users will see: say so in the PR.
+5. Point the imports in `src/spdx/list.ts` at the new folder, and delete the old folder: only one list ships, and a test checks that the folder matches the list in use.
+6. Run `make check-schemas`, `make test` and `make build`. A test or fixture that fails because an id was added, deprecated or removed is a change users will see: say so in the PR.

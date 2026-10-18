@@ -29,7 +29,7 @@ This file is for agents and contributors, and holds rules only. Humans start at 
 ## Engineering rules
 
 - TypeScript strict, ESM, on the `node24` runtime.
-- The engine (`src/engine/`, `src/rules/`) is pure: text in, findings out. Side effects live in exactly these places:
+- The engine (`src/engine/`, `src/rules/`, and `src/spdx/`, which it uses) is pure: text in, findings out. Side effects live in exactly these places:
   - `src/main.ts` reads the inputs and the environment;
   - `src/discover/` reads manifest files;
   - `src/report/` writes the summary, the outputs and the report;
@@ -67,7 +67,7 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 | `make test` | `node --test 'src/**/*.test.ts'` |
 | `make build` | esbuild: `src/main.ts` → `dist/index.js` |
 | `make check-dist` | `make build`, then fail if `dist/` differs from the commit |
-| `make check-vendored` | Recompute every `SHA256SUMS` under `schemas/` and `data/spdx/`, and fail on a mismatch or an unlisted file |
+| `make check-schemas` | Recompute every `SHA256SUMS` under `schemas/` and `data/spdx/`, and fail on a mismatch or an unlisted file |
 
 ## CI
 

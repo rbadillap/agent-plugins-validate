@@ -1,11 +1,10 @@
 import type { Problem, Rule, RuleContext } from "../engine/types.ts";
+import { type ExpressionId, parseExpression } from "../spdx/expression.ts";
 import {
   CURRENT_LICENSE_IDS,
   EXCEPTION_IDS,
-  type ExpressionId,
   LICENSE_IDS,
-  parseExpression,
-} from "./spdx.ts";
+} from "../spdx/list.ts";
 import { isObject, quote } from "./util.ts";
 
 /** Lowercase letters and digits only, without the words that don't tell licenses apart. */
