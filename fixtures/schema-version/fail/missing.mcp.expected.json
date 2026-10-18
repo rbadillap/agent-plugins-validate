@@ -6,6 +6,7 @@
     "field": "$schema",
     "current": "(missing)",
     "fix": "add \"$schema\": \"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json\"",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 1
   }
 ]

@@ -6,6 +6,7 @@
     "field": "mcpServers.docs.type",
     "current": "\"http\"",
     "fix": "use \"streamable-http\"",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 4
   }
 ]

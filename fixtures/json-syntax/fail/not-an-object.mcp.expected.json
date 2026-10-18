@@ -6,6 +6,7 @@
     "field": "(root)",
     "current": "\"mcpServers\"",
     "fix": "use a JSON object",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#722-loading-rules"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#722-loading-rules",
+    "line": 1
   }
 ]

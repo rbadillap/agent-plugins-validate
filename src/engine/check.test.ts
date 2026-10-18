@@ -100,10 +100,12 @@ test("a schema error no rule claims still gets a concrete finding", () => {
 });
 
 test("the oneOf example gives exactly one finding", () => {
-  const text = JSON.stringify({
-    $schema: canonicalSchema("1.0.0", "mcp"),
-    mcpServers: { docs: { type: "http", url: "https://docs.example.com/mcp" } },
-  });
+  const text = `{
+  "$schema": "${canonicalSchema("1.0.0", "mcp")}",
+  "mcpServers": {
+    "docs": { "type": "http", "url": "https://docs.example.com/mcp" }
+  }
+}`;
   const { findings } = check({ root: "", mcp: { path: "mcp.json", text } });
   assert.deepEqual(findings, [
     {
@@ -114,6 +116,7 @@ test("the oneOf example gives exactly one finding", () => {
       current: '"http"',
       fix: 'use "streamable-http"',
       spec: "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+      line: 4,
     },
   ]);
 });
@@ -215,7 +218,7 @@ test("a missing required field is described, not filled with a value that would 
 });
 
 test("a byte order mark gets its own fix", () => {
-  const text = `﻿{ "name": "x" }`;
+  const text = `\uFEFF{ "name": "x" }`;
   const [finding] = check({
     root: "",
     plugin: { path: "plugin.json", text },
@@ -237,4 +240,13 @@ test("a type error deeper than a server's own type field isn't claimed by mcp-se
     inspection.claims.map((c) => c.claimedBy),
     [[]],
   );
+});
+
+test("every finding from the fixtures has a line", () => {
+  for (const fixture of fixtures.fail) {
+    for (const finding of check(fixture.input).findings) {
+      assert.equal(typeof finding.line, "number", fixture.name);
+      assert.ok((finding.line ?? 0) >= 1, fixture.name);
+    }
+  }
 });

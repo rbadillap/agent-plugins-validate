@@ -6,7 +6,8 @@
     "field": "mcpServers.both.type",
     "current": "(missing)",
     "fix": "add \"type\": one of \"stdio\", \"streamable-http\" or \"sse\"",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 4
   },
   {
     "rule": "mcp-server-type",
@@ -15,6 +16,7 @@
     "field": "mcpServers.neither.type",
     "current": "(missing)",
     "fix": "add \"type\": one of \"stdio\", \"streamable-http\" or \"sse\"",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 5
   }
 ]

@@ -6,6 +6,7 @@
     "field": "$schema",
     "current": "1",
     "fix": "use \"https://agent-plugins.org/schemas/1.0.0/plugin.schema.json\"",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object",
+    "line": 1
   }
 ]

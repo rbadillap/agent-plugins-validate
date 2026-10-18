@@ -3,6 +3,8 @@ import { ruleSection, rules, schemaViolation } from "../rules/index.ts";
 import { selectServerType } from "../rules/mcp-server-type.ts";
 import { declaredVersion } from "../rules/schema-version.ts";
 import { fieldPath, formatCurrent, truncate } from "./format.ts";
+import type { Locator, Position } from "./locate.ts";
+import { createLocator, locateParseError } from "./locate.ts";
 import type { CompiledSchemas, SchemaRegistry } from "./registry.ts";
 import { SERVER_DEFS } from "./registry.ts";
 import { specUrl } from "./spec.ts";
@@ -180,8 +182,9 @@ function toFinding(
   file: string,
   version: string,
   problem: Problem,
+  position: Position | undefined,
 ): Finding {
-  return {
+  const finding: Finding = {
     rule: rule.id,
     level: rule.level,
     file,
@@ -193,6 +196,8 @@ function toFinding(
     fix: problem.fix,
     spec: specUrl(version, ruleSection(rule, kind)),
   };
+  if (position !== undefined) finding.line = position.line;
+  return finding;
 }
 
 function claimFor(
@@ -241,6 +246,19 @@ function checkFile(
   const newest = registry.versions[0];
   if (newest === undefined)
     throw new Error("The schema registry has no versions");
+  let locator: Locator | undefined;
+  const emit = (rule: Rule, version: string, problem: Problem): void => {
+    let position: Position | undefined;
+    if (!parsed.ok) {
+      position = locateParseError(entry.text, parsed.message);
+    } else {
+      locator ??= createLocator(entry.text);
+      position = locator(problem.path);
+    }
+    out.result.findings.push(
+      toFinding(rule, kind, entry.path, version, problem, position),
+    );
+  };
   const base: RuleContext = {
     kind,
     file: entry.path,
@@ -255,11 +273,7 @@ function checkFile(
   )) {
     const problems = gate.check(base);
     if (problems.length > 0) {
-      for (const problem of problems) {
-        out.result.findings.push(
-          toFinding(gate, kind, entry.path, newest, problem),
-        );
-      }
+      for (const problem of problems) emit(gate, newest, problem);
       out.result.files.push({ file: entry.path, kind, specVersion: null });
       return;
     }
@@ -278,16 +292,12 @@ function checkFile(
   for (const error of schemaErrors(kind, compiled, parsed.value)) {
     const { rule, claim, by } = claimFor(error, ctx);
     out.claims.push({ error, claimedBy: by });
-    out.result.findings.push(toFinding(rule, kind, entry.path, version, claim));
+    emit(rule, version, claim);
   }
 
   for (const rule of rules) {
     if (rule.gate || !appliesTo(rule, kind)) continue;
-    for (const problem of rule.check(ctx)) {
-      out.result.findings.push(
-        toFinding(rule, kind, entry.path, version, problem),
-      );
-    }
+    for (const problem of rule.check(ctx)) emit(rule, version, problem);
   }
 }
 

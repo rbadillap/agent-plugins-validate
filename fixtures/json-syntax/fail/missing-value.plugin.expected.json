@@ -6,6 +6,7 @@
     "field": "(root)",
     "current": "(not valid JSON)",
     "fix": "fix the JSON syntax: Unexpected token '}'",
-    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object"
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object",
+    "line": 1
   }
 ]
