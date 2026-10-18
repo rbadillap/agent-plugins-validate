@@ -7603,7 +7603,7 @@ import path3 from "node:path";
 // package.json
 var package_default = {
   name: "agent-plugins-validate",
-  version: "0.0.0",
+  version: "1.0.0",
   private: true,
   type: "module",
   description: "Check plugin.json and mcp.json against the Agent Plugins specification.",
