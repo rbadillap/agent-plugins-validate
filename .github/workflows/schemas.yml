@@ -18,3 +18,4 @@ jobs:
         with:
           persist-credentials: false
       - run: make check-schemas
+      - run: echo "${{ github.event.pull_request.title }}"
