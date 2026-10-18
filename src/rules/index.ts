@@ -1,8 +1,14 @@
 import type { FileKind, Rule } from "../engine/types.ts";
+import { extensionsNamespace } from "./extensions-namespace.ts";
+import { extensionsType } from "./extensions-type.ts";
+import { fieldType } from "./field-type.ts";
 import { jsonSyntax } from "./json-syntax.ts";
 import { mcpServerType } from "./mcp-server-type.ts";
+import { pluginName } from "./plugin-name.ts";
+import { requiredFields } from "./required-fields.ts";
 import { schemaVersion } from "./schema-version.ts";
 import { schemaViolation } from "./schema-violation.ts";
+import { unknownField } from "./unknown-field.ts";
 
 export { schemaViolation };
 
@@ -10,6 +16,12 @@ export { schemaViolation };
 export const rules: readonly Rule[] = [
   jsonSyntax,
   schemaVersion,
+  requiredFields,
+  pluginName,
+  fieldType,
+  unknownField,
+  extensionsType,
+  extensionsNamespace,
   mcpServerType,
   schemaViolation,
 ];

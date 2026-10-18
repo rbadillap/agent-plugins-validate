@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
+import { rules } from "../rules/index.ts";
 import { canonicalSchema } from "../rules/schema-version.ts";
 import { check, inspect } from "./check.ts";
 import type { PluginInput } from "./types.ts";
+
+// Only the gates: no rule claims a schema error, so the fallback is what answers.
+const gatesOnly = rules.filter((rule) => rule.gate);
 
 const fixturesDir = new URL("../../fixtures/", import.meta.url);
 
@@ -78,6 +82,14 @@ test("every schema error from the fixtures is claimed by exactly one rule", () =
   }
 });
 
+test("no fixture produces schema-violation", () => {
+  for (const fixture of [...fixtures.pass, ...fixtures.fail]) {
+    for (const finding of check(fixture.input).findings) {
+      assert.notEqual(finding.rule, "schema-violation", fixture.name);
+    }
+  }
+});
+
 test("a schema error no rule claims still gets a concrete finding", () => {
   const input: PluginInput = {
     root: "",
@@ -89,7 +101,7 @@ test("a schema error no rule claims still gets a concrete finding", () => {
       }),
     },
   };
-  const inspection = inspect(input);
+  const inspection = inspect(input, undefined, gatesOnly);
   assert.equal(inspection.claims.length, 1);
   assert.deepEqual(inspection.claims[0]?.claimedBy, []);
   const [finding] = inspection.result.findings;
@@ -184,11 +196,15 @@ test("errors without an owner are translated, never shown in the validator's wor
       },
     },
   };
-  const findings = check({
-    root: "",
-    plugin: { path: "plugin.json", text: JSON.stringify(plugin) },
-    mcp: { path: "mcp.json", text: JSON.stringify(mcp) },
-  }).findings.map((f) => `${f.field} ${f.fix}`);
+  const findings = check(
+    {
+      root: "",
+      plugin: { path: "plugin.json", text: JSON.stringify(plugin) },
+      mcp: { path: "mcp.json", text: JSON.stringify(mcp) },
+    },
+    undefined,
+    gatesOnly,
+  ).findings.map((f) => `${f.field} ${f.fix}`);
   assert.deepEqual(findings.sort(), [
     "author use an object",
     "mcpServers.local.command use a non-empty string",
@@ -205,10 +221,11 @@ test("errors without an owner are translated, never shown in the validator's wor
 
 test("a missing required field is described, not filled with a value that would fail", () => {
   const text = JSON.stringify({ $schema: canonicalSchema("1.0.0", "plugin") });
-  const [finding] = check({
-    root: "",
-    plugin: { path: "plugin.json", text },
-  }).findings;
+  const [finding] = check(
+    { root: "", plugin: { path: "plugin.json", text } },
+    undefined,
+    gatesOnly,
+  ).findings;
   assert.equal(finding?.field, "name");
   assert.equal(finding?.current, "(missing)");
   assert.equal(

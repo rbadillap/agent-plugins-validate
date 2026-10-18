@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "field-type",
+    "level": "error",
+    "file": "plugin.json",
+    "field": "version",
+    "current": "1.2",
+    "fix": "use \"1.2\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
+    "line": 4
+  }
+]

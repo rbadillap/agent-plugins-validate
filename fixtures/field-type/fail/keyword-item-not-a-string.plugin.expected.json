@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "field-type",
+    "level": "error",
+    "file": "plugin.json",
+    "field": "keywords[1]",
+    "current": "3",
+    "fix": "use \"3\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
+    "line": 4
+  }
+]

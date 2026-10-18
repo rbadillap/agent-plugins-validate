@@ -58,6 +58,9 @@ export interface SchemaError {
   server?: { name: string; value: unknown; branch: ServerType | null };
 }
 
+/** What a rule reports for a schema error it owns. `"drop"` owns the error and reports nothing for it. */
+export type Claim = Problem | "drop";
+
 export interface RuleContext {
   kind: FileKind;
   file: string;
@@ -85,5 +88,5 @@ export interface Rule {
   /** Semantic checks the schema can't express. */
   check(ctx: RuleContext): Problem[];
   /** Takes ownership of a schema error, and says what to report for it. */
-  claim?(error: SchemaError, ctx: RuleContext): Problem | undefined;
+  claim?(error: SchemaError, ctx: RuleContext): Claim | undefined;
 }

@@ -1,0 +1,22 @@
+[
+  {
+    "rule": "extensions-namespace",
+    "level": "warning",
+    "file": "plugin.json",
+    "field": "extensions[\"My Client!\"]",
+    "current": "\"My Client!\"",
+    "fix": "use a reverse-domain name, e.g. \"com.example.my-client\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#8-client-extensions",
+    "line": 4
+  },
+  {
+    "rule": "extensions-namespace",
+    "level": "warning",
+    "file": "plugin.json",
+    "field": "extensions[\"com..example\"]",
+    "current": "\"com..example\"",
+    "fix": "use a reverse-domain name, e.g. \"com.example\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#8-client-extensions",
+    "line": 4
+  }
+]

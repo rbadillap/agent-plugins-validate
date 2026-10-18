@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "plugin-name",
+    "level": "error",
+    "file": "plugin.json",
+    "field": "name",
+    "current": "\"-start\"",
+    "fix": "use \"start\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#55-plugin-name-constraints",
+    "line": 3
+  }
+]

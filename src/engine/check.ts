@@ -1,5 +1,9 @@
 import type { ErrorObject } from "ajv/dist/2020.js";
-import { ruleSection, rules, schemaViolation } from "../rules/index.ts";
+import {
+  rules as allRules,
+  ruleSection,
+  schemaViolation,
+} from "../rules/index.ts";
 import { selectServerType } from "../rules/mcp-server-type.ts";
 import { declaredVersion } from "../rules/schema-version.ts";
 import { fieldPath, formatCurrent, truncate } from "./format.ts";
@@ -11,6 +15,7 @@ import { specUrl } from "./spec.ts";
 import { translators } from "./translate.ts";
 import type {
   CheckResult,
+  Claim,
   FileKind,
   Finding,
   ParseResult,
@@ -203,8 +208,9 @@ function toFinding(
 function claimFor(
   error: SchemaError,
   ctx: RuleContext,
-): { rule: Rule; claim: Problem; by: string[] } {
-  const claimed: { rule: Rule; claim: Problem }[] = [];
+  rules: readonly Rule[],
+): { rule: Rule; claim: Claim; by: string[] } {
+  const claimed: { rule: Rule; claim: Claim }[] = [];
   for (const rule of rules) {
     if (rule.claim === undefined || !appliesTo(rule, ctx.kind)) continue;
     const claim = rule.claim(error, ctx);
@@ -240,6 +246,7 @@ function checkFile(
   kind: FileKind,
   entry: { path: string; text: string },
   registry: SchemaRegistry,
+  rules: readonly Rule[],
   out: Inspection,
 ): void {
   const parsed = parseJson(entry.text);
@@ -290,9 +297,9 @@ function checkFile(
   const ctx: RuleContext = { ...base, specVersion: version };
 
   for (const error of schemaErrors(kind, compiled, parsed.value)) {
-    const { rule, claim, by } = claimFor(error, ctx);
+    const { rule, claim, by } = claimFor(error, ctx, rules);
     out.claims.push({ error, claimedBy: by });
-    emit(rule, version, claim);
+    if (claim !== "drop") emit(rule, version, claim);
   }
 
   for (const rule of rules) {
@@ -305,11 +312,13 @@ function checkFile(
 export function inspect(
   input: PluginInput,
   registry: SchemaRegistry = vendoredRegistry(),
+  rules: readonly Rule[] = allRules,
 ): Inspection {
   const out: Inspection = { result: { findings: [], files: [] }, claims: [] };
   if (input.plugin !== undefined)
-    checkFile("plugin", input.plugin, registry, out);
-  if (input.mcp !== undefined) checkFile("mcp", input.mcp, registry, out);
+    checkFile("plugin", input.plugin, registry, rules, out);
+  if (input.mcp !== undefined)
+    checkFile("mcp", input.mcp, registry, rules, out);
   out.result.findings.sort(compareFindings);
   return out;
 }
@@ -318,6 +327,7 @@ export function inspect(
 export function check(
   input: PluginInput,
   registry?: SchemaRegistry,
+  rules?: readonly Rule[],
 ): CheckResult {
-  return inspect(input, registry).result;
+  return inspect(input, registry, rules).result;
 }
