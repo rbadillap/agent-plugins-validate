@@ -35,3 +35,14 @@ A change to a workflow also runs the area it defines, because the `workflows` ar
 - Steps call `make`, never tool binaries directly. The composite action `.github/actions/setup` installs Node 24 and runs `make install`, so setup is written once.
 - No `pull_request_target`, and no `${{ github.event.* }}` text inside a `run:` script: those values go through `env:`.
 - No secrets. The token stays read-only.
+
+## Updates
+
+Pins never move on their own, so Dependabot (`.github/dependabot.yml`) opens one grouped pull request per week for each ecosystem: GitHub Actions (prefix `ci:`) and npm (prefix `build:`). Runtime dependencies are in their own group, so a change that ships to users is never hidden among dev tool bumps.
+
+Every update waits for a **7-day cooldown**: Dependabot proposes a release only after it has been public for a week. A compromised release is usually caught within days, so the cooldown keeps updates flowing without taking each release the day it lands.
+
+`@types/node` is held to major 24, because it must match the `node24` runtime.
+
+A runtime dependency bump changes `dist/`, so its pull request fails `make check-dist` until someone rebuilds. That is intended: a person looks at every change that ships. Merging stays manual.
+
