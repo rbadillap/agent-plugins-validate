@@ -47,16 +47,30 @@ When everything is right, the check turns green and the summary simply says so: 
 
 ## Questions you might have
 
-**Does it send my code anywhere?**
+<details>
+<summary><b>Does it send my code anywhere?</b></summary>
+
 No. It runs inside your own workflow, and the official spec files are bundled with it, so it never needs to download anything or call any server. The one exception is opt-in: if you turn on [issues](#issues), it talks to GitHub's own API, and to nothing else.
 
-**Will it suddenly break my CI?**
+</details>
+
+<details>
+<summary><b>Will it suddenly break my CI?</b></summary>
+
 No. Only real problems fail the check: the ones that stop your plugin, or one of its MCP servers, from loading. Suggestions from the spec appear as notes and never fail anything. When a new check is added, it starts as a warning and only becomes an error in a new major version, so `@v1` never breaks on its own.
 
-**Do I need to give it a token or a secret?**
+</details>
+
+<details>
+<summary><b>Do I need to give it a token or a secret?</b></summary>
+
 No. Reading your files is all it needs. If you turn on issues, it uses the token GitHub already gives every workflow, and you don't set anything.
 
-**My plugin isn't at the root of my repository.**
+</details>
+
+<details>
+<summary><b>My plugin isn't at the root of my repository.</b></summary>
+
 Tell it where your `plugin.json` is. It checks the `mcp.json` next to it automatically:
 
 ```yaml
@@ -65,13 +79,23 @@ Tell it where your `plugin.json` is. It checks the `mcp.json` next to it automat
           manifests: plugins/*/plugin.json
 ```
 
-**Can it warn me when something breaks on my main branch?**
+</details>
+
+<details>
+<summary><b>Can it warn me when something breaks on my main branch?</b></summary>
+
 Yes, if you want it to. Turn on `open-issues`, and when a manifest that used to be fine breaks on your default branch, you get one issue for it. When you fix it, the issue closes itself. It never opens the same issue twice, and it never opens issues for problems you already had. [How issues work](#issues)
 
-**Which version should I use: `@v1` or a commit SHA?**
+</details>
+
+<details>
+<summary><b>Which version should I use: `@v1` or a commit SHA?</b></summary>
+
 Both work, and you can choose.
 - `@v1` gets every fix automatically, so you trust each release as it lands.
 - A commit SHA runs exactly the code you reviewed, and nobody can change it under you. Dependabot keeps it up to date. This is the one we recommend.
+
+</details>
 
 ---
 
