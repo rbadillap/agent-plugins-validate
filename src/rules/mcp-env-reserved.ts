@@ -23,6 +23,8 @@ export const mcpEnvReserved: Rule = {
     return {
       path: error.path,
       current: error.value,
+      // One of two fixed names, matched exactly by the schema: it holds no free text.
+      currentText: quote(error.path[3]),
       fix: `remove ${quote(error.path[3])}; clients set it`,
     };
   },

@@ -4,8 +4,8 @@
     "level": "error",
     "file": "plugin.json",
     "field": "author.twitter",
-    "current": "\"@jane\"",
-    "fix": "remove \"twitter\"",
+    "current": "string (5 chars)",
+    "fix": "remove this field; an author has only \"name\", \"email\" and \"url\"",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
     "line": 4
   }

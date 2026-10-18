@@ -4,8 +4,8 @@
     "level": "warning",
     "file": "plugin.json",
     "field": "mcpServers",
-    "current": "{}",
-    "fix": "remove \"mcpServers\"; client data belongs under \"extensions\"",
+    "current": "object (0 keys)",
+    "fix": "remove this field; client data belongs under \"extensions\"",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object",
     "line": 4
   }

@@ -3,6 +3,11 @@ import type { FileKind, Problem, Rule, RuleContext } from "../engine/types.ts";
 const CANONICAL =
   /^https:\/\/agent-plugins\.org\/schemas\/([^/]+)\/(?:plugin|mcp)\.schema\.json$/;
 
+// The shape of a schema identifier. A value of this shape holds nothing but a version, so it may be
+// shown; any other value is described.
+const SCHEMA_SHAPE =
+  /^https?:\/\/agent-plugins\.org\/schemas\/\d+\.\d+\.\d+\/(?:plugin|mcp)\.schema\.json$/;
+
 export function canonicalSchema(version: string, kind: FileKind): string {
   return `https://agent-plugins.org/schemas/${version}/${kind}.schema.json`;
 }
@@ -70,6 +75,9 @@ export const schemaVersion: Rule = {
       {
         path: ["$schema"],
         current: declared,
+        ...(typeof declared === "string" && SCHEMA_SHAPE.test(declared)
+          ? { currentText: JSON.stringify(declared) }
+          : {}),
         fix: fixFor(declared, ctx.kind, ctx.supportedVersions),
       },
     ];

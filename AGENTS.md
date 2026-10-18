@@ -8,6 +8,7 @@ This file is for agents and contributors, and holds rules only. Humans start at 
 
 - **Spec only.** Every rule cites a section of the Agent Plugins specification. No rule without a spec link, and no recommendations of our own.
 - **Every finding has the seven fields:** `rule`, `level`, `file`, `field`, `current`, `fix`, `spec`. A finding never says only "must be equal to one of the allowed values": `fix` is a concrete change, e.g. `use "streamable-http"`.
+- **Findings never repeat the user's text.** `current` describes a value (`string (54 chars)`) and `fix` is an instruction with a generic example. Only values that can't hold free text are shown as they are: numbers, booleans, and plain names (`^[A-Za-z0-9_.-]{1,64}$`: a plugin name, a namespace, a server, header or variable name, a transport). The values of `env`, `headers`, `url`, `command`, `args` and `cwd` never are, and a key in `field` that is not plain is written `[…]`. The one exception is a URL the parser says holds a password: `scheme://u****:p****@host`.
 - **Levels follow the spec's consequence:** `error` when a client rejects the plugin, disables MCP or skips a server; `warning` when a client reports and keeps loading; `notice` for SHOULD/RECOMMENDED.
 - **Rule ids are stable.** A rule id never changes meaning and is never reused.
 - **No surprise failures.** A new rule ships as `warning` in a minor release and becomes `error` only in the next major.

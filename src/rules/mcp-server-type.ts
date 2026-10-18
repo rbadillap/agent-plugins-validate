@@ -5,6 +5,7 @@ import type {
   SchemaError,
   ServerType,
 } from "../engine/types.ts";
+import { shownName } from "./util.ts";
 
 export const SERVER_TYPES: readonly ServerType[] = [
   "stdio",
@@ -101,12 +102,14 @@ export const mcpServerType: Rule = {
       return {
         path: [...error.path.slice(0, 2), "transport"],
         current: object.transport,
+        ...shownName(object.transport),
         fix: 'rename "transport" to "type"',
       };
     }
     return {
       path: [...error.path.slice(0, 2), "type"],
       current: written,
+      ...shownName(written),
       fix: fixFor(written, server.branch),
     };
   },

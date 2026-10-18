@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-command",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.command",
+    "current": "string (7 chars)",
+    "fix": "use \"/\" as the separator in the path, e.g. \"./bin/server\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]

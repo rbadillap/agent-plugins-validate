@@ -5,7 +5,7 @@
     "file": "plugin.json",
     "field": "author.email",
     "current": "5",
-    "fix": "use \"5\"",
+    "fix": "use a string",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
     "line": 4
   }

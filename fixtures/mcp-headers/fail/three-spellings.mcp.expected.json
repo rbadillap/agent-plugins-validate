@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-headers",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.headers.X-Tenant",
+    "current": "\"X-Tenant\"",
+    "fix": "keep one spelling of this header name: names are case-insensitive, so they are the same header",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#streamable-http-and-legacy-httpsse",
+    "line": 4
+  }
+]

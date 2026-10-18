@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-url",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.url",
+    "current": "string (32 chars)",
+    "fix": "use \"https\" instead of \"http\", which is allowed only for localhost, 127.0.0.0/8 and [::1]",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#streamable-http-and-legacy-httpsse",
+    "line": 4
+  }
+]

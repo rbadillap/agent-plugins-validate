@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-cwd",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.cwd",
+    "current": "string (19 chars)",
+    "fix": "keep the path inside the plugin: remove the \"..\" segments that climb out of it, e.g. \"./data\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]

@@ -4,7 +4,7 @@
     "level": "error",
     "file": "mcp.json",
     "field": "mcpServers",
-    "current": "[]",
+    "current": "array (0 items)",
     "fix": "use an object keyed by server name",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
     "line": 1

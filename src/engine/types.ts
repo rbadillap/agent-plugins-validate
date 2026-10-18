@@ -35,9 +35,12 @@ export type ParseResult =
 /** A problem found by a rule. The engine turns it into a Finding. */
 export interface Problem {
   path: PathPart[];
-  /** The value as written. `undefined` means the value is missing. */
+  /** The value the problem is about. `undefined` means it is missing. It is described, not repeated. */
   current: unknown;
-  /** Replaces the formatted `current` when the value can't be shown as JSON, e.g. a file that isn't JSON. */
+  /**
+   * Replaces the description of `current`. Only for text that can't hold free text: a value from a
+   * closed set (a transport name, a schema identifier), or a fixed phrase.
+   */
   currentText?: string;
   fix: string;
   /** Overrides the rule's section, for a rule whose findings cite different sections. */

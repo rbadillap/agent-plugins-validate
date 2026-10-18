@@ -4,8 +4,8 @@
     "level": "error",
     "file": "plugin.json",
     "field": "keywords",
-    "current": "\"ai, docs\"",
-    "fix": "use [\"ai\", \"docs\"]",
+    "current": "string (8 chars)",
+    "fix": "use an array of strings, e.g. [\"docs\", \"search\"]",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
     "line": 4
   }

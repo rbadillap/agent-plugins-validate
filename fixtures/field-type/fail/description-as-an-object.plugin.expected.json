@@ -4,7 +4,7 @@
     "level": "error",
     "file": "plugin.json",
     "field": "description",
-    "current": "{\"text\":\"Docs\"}",
+    "current": "object (1 keys)",
     "fix": "use a string",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
     "line": 4

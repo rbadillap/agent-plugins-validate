@@ -4,7 +4,7 @@
     "level": "error",
     "file": "mcp.json",
     "field": "mcpServers.both.url",
-    "current": "\"https://docs.example.com/mcp\"",
+    "current": "string (28 chars)",
     "fix": "remove \"url\"; stdio servers use \"command\"",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
     "line": 4

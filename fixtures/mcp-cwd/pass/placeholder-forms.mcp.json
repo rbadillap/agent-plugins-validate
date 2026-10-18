@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "a": { "type": "stdio", "command": "node", "cwd": "${PLUGIN_ROOT}" },
+    "b": { "type": "stdio", "command": "node", "cwd": "${PLUGIN_ROOT}/sub" },
+    "c": { "type": "stdio", "command": "node", "cwd": "${PLUGIN_DATA}" },
+    "d": { "type": "stdio", "command": "node", "cwd": "${PLUGIN_DATA}/db/../cache" },
+    "e": { "type": "stdio", "command": "node", "cwd": "./a/../b" }
+  }
+}

@@ -124,10 +124,12 @@ Each finding in `report` has seven fields:
 | `rule` | `mcp-server-type` | Stable id. It never changes meaning. |
 | `level` | `error` | `error`, `warning` or `notice` |
 | `file` | `mcp.json` | Path from the repository root |
-| `field` | `mcpServers.docs.type` | Dotted path inside the file |
-| `current` | `"http"` | The value as written, or `(missing)` |
-| `fix` | `use "streamable-http"` | What to change, concretely |
+| `field` | `mcpServers.docs.type` | Dotted path inside the file. A key that is not a plain name (letters, digits, `_`, `.`, `-`, up to 64) is written `[…]`; the finding's line says where it is |
+| `current` | `string (54 chars)` | What the value is. Text from your files is described by its size, never repeated, because it can hold a secret. Numbers, booleans and plain names (a plugin name, a namespace, a keyword, a server, header or variable name, a transport such as `"http"`) are shown as they are. The values of `env`, `headers`, `url`, `command`, `args` and `cwd` never are. A missing value is `(missing)` |
+| `fix` | `use "streamable-http"` | What to change, concretely, with a generic example. It never repeats text from your files either |
 | `spec` | link to §7.2.1 | The section of the spec that requires it |
+
+A finding describes your text and never repeats it, so a secret in a manifest can't end up in a log, an annotation or an issue. There is one exception, for a URL that holds a password: `current` shows `https://u****:p****@host`, which is the first character of the user, the first character of the password (each followed by `****`, because a token is often sent as the user) and the host, so you can tell which credential to rotate. A URL that a client cannot use but that still holds `user:password@` gets the same advice, with `current` described like any text. The Action finds it with a URL parser, not by guessing, and it shows nothing else of the URL (no path, no query).
 
 ### Levels
 

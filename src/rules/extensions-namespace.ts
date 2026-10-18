@@ -1,18 +1,8 @@
 import type { Problem, Rule, RuleContext } from "../engine/types.ts";
-import { isObject } from "./util.ts";
+import { isObject, shownName } from "./util.ts";
 
 // At least two dot-separated labels of letters, digits and hyphens.
 const REVERSE_DOMAIN = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
-
-function suggestNamespace(key: string): string {
-  const cleaned = key
-    .toLowerCase()
-    .replace(/[^a-z0-9.-]+/g, "-")
-    .replace(/\.{2,}/g, ".")
-    .replace(/^[-.]+|[-.]+$/g, "");
-  if (cleaned === "") return "com.example.myclient";
-  return REVERSE_DOMAIN.test(cleaned) ? cleaned : `com.example.${cleaned}`;
-}
 
 export const extensionsNamespace: Rule = {
   id: "extensions-namespace",
@@ -30,7 +20,8 @@ export const extensionsNamespace: Rule = {
       .map((key) => ({
         path: ["extensions", key],
         current: key,
-        fix: `use a reverse-domain name, e.g. ${JSON.stringify(suggestNamespace(key))}`,
+        ...shownName(key),
+        fix: 'the namespace is the reverse domain of the client these settings are for, e.g. "com.example.myclient" for a client at example.com. Use the namespace that client documents: the client reads its settings by this key, so a guessed name means it stops reading them',
       }));
   },
 };

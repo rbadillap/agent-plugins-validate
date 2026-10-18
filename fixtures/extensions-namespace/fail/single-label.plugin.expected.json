@@ -5,7 +5,7 @@
     "file": "plugin.json",
     "field": "extensions.myclient",
     "current": "\"myclient\"",
-    "fix": "use a reverse-domain name, e.g. \"com.example.myclient\"",
+    "fix": "the namespace is the reverse domain of the client these settings are for, e.g. \"com.example.myclient\" for a client at example.com. Use the namespace that client documents: the client reads its settings by this key, so a guessed name means it stops reading them",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#8-client-extensions",
     "line": 4
   }

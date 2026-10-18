@@ -1,15 +1,5 @@
 import type { Problem, Rule, RuleContext } from "../engine/types.ts";
 
-const MAX_REASON = 80;
-
-/** The part of a JSON.parse message that says what is wrong, without the echoed text. */
-function reason(message: string): string {
-  const [first = ""] = message.split(
-    / in JSON| after JSON|, "| is not valid JSON/,
-  );
-  return first.length > MAX_REASON ? `${first.slice(0, MAX_REASON)}…` : first;
-}
-
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -43,7 +33,7 @@ export const jsonSyntax: Rule = {
           path: [],
           current: undefined,
           currentText: "(not valid JSON)",
-          fix: `fix the JSON syntax: ${reason(ctx.parsed.message)}`,
+          fix: "fix the JSON syntax at this line: check commas, quotes and brackets",
         },
       ];
     }

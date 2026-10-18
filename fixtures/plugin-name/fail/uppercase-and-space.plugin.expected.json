@@ -4,8 +4,8 @@
     "level": "error",
     "file": "plugin.json",
     "field": "name",
-    "current": "\"My Plugin\"",
-    "fix": "use \"my-plugin\"",
+    "current": "string (9 chars)",
+    "fix": "use lowercase kebab-case of 1–64 characters (a-z, 0-9, \"-\" and \".\"), starting and ending with a letter or digit, e.g. \"my-plugin\"",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#55-plugin-name-constraints",
     "line": 3
   }

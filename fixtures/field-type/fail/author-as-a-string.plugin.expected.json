@@ -4,8 +4,8 @@
     "level": "error",
     "file": "plugin.json",
     "field": "author",
-    "current": "\"Jane\"",
-    "fix": "use {\"name\": \"Jane\"}",
+    "current": "string (4 chars)",
+    "fix": "use an object with \"name\", \"email\" or \"url\" strings, e.g. {\"name\": \"Jane\"}",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#54-metadata-fields",
     "line": 4
   }

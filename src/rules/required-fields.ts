@@ -1,4 +1,5 @@
 import type { Claim, Problem, Rule, SchemaError } from "../engine/types.ts";
+import { shownName } from "./util.ts";
 
 /** Owns every error about the presence, type and emptiness of `name`. */
 export const requiredFields: Rule = {
@@ -23,6 +24,7 @@ export const requiredFields: Rule = {
     return {
       path: ["name"],
       current: error.value,
+      ...shownName(error.value),
       fix:
         error.keyword === "required"
           ? 'add "name": "my-plugin"'

@@ -4,7 +4,7 @@
     "level": "error",
     "file": "plugin.json",
     "field": "(root)",
-    "current": "[\"name\"]",
+    "current": "array (1 items)",
     "fix": "use a JSON object",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object",
     "line": 1

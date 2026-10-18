@@ -6,7 +6,7 @@ import {
 } from "../rules/index.ts";
 import { selectServerType } from "../rules/mcp-server-type.ts";
 import { declaredVersion } from "../rules/schema-version.ts";
-import { fieldPath, formatCurrent, truncate } from "./format.ts";
+import { describeValue, fieldPath, truncate } from "./format.ts";
 import type { Locator, Position } from "./locate.ts";
 import { createLocator, locateParseError } from "./locate.ts";
 import type { CompiledSchemas, SchemaRegistry } from "./registry.ts";
@@ -204,10 +204,8 @@ function toFinding(
     level: rule.level,
     file,
     field: fieldPath(problem.path),
-    current:
-      problem.currentText === undefined
-        ? formatCurrent(problem.current)
-        : truncate(problem.currentText),
+    // Free text is described, not repeated: see `describeValue`.
+    current: truncate(problem.currentText ?? describeValue(problem.current)),
     fix: problem.fix,
     spec: specUrl(version, problem.section ?? ruleSection(rule, kind)),
   };

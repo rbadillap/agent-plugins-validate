@@ -4,7 +4,7 @@
     "level": "error",
     "file": "mcp.json",
     "field": "mcpServers.local",
-    "current": "\"node server.js\"",
+    "current": "string (14 chars)",
     "fix": "use an object with \"type\"",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
     "line": 4

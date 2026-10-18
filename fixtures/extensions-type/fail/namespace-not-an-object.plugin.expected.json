@@ -3,7 +3,7 @@
     "rule": "extensions-type",
     "level": "warning",
     "file": "plugin.json",
-    "field": "extensions[\"com.example.client\"]",
+    "field": "extensions.com.example.client",
     "current": "true",
     "fix": "use an object, e.g. {}",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#81-manifest-extension-data",

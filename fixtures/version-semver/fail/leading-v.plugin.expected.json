@@ -4,8 +4,8 @@
     "level": "notice",
     "file": "plugin.json",
     "field": "version",
-    "current": "\"v1.2\"",
-    "fix": "use \"1.2.0\"",
+    "current": "string (4 chars)",
+    "fix": "use a Semantic Versioning version, MAJOR.MINOR.PATCH, e.g. \"1.0.0\"",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#102-plugin-versions",
     "line": 4
   }

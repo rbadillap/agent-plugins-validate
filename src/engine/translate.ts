@@ -140,8 +140,9 @@ export const translators: Record<string, Translator> = {
     const joiner = value.startsWith('"') ? ": " : " as ";
     return same(error, `add ${quote(name)}${joiner}${value}`);
   },
+  // A key can hold anything, so a fix says "this field" and leaves the name to `field`.
   additionalProperties(error) {
-    return same(error, `remove ${quote(lastKey(error))}`);
+    return same(error, "remove this field");
   },
   minLength(error) {
     const limit = Number(error.params.limit);
@@ -162,15 +163,12 @@ export const translators: Record<string, Translator> = {
     );
   },
   propertyNames(error) {
-    return same(error, `remove ${quote(lastKey(error))}`);
+    return same(error, "remove this field");
   },
   not(error) {
     // `not` fails inside `propertyNames` when a key is forbidden.
-    if (
-      typeof error.value === "string" &&
-      error.schemaPath.includes("/propertyNames/")
-    ) {
-      return same(error, `remove ${quote(error.value)}`);
+    if (error.schemaPath.includes("/propertyNames/")) {
+      return same(error, "remove this field");
     }
     return same(error, "use a different value");
   },

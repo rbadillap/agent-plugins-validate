@@ -5,7 +5,7 @@
     "file": "mcp.json",
     "field": "mcpServers.docs.headers.X-Retries",
     "current": "3",
-    "fix": "use \"3\"",
+    "fix": "use a string",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#streamable-http-and-legacy-httpsse",
     "line": 4
   }

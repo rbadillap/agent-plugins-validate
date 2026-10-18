@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-command",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.command",
+    "current": "string (26 chars)",
+    "fix": "use \"command\": \"node\" and put [\"server.js\", \"--port\", \"3000\"] at the start of the existing \"args\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]

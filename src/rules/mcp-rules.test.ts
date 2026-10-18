@@ -212,7 +212,7 @@ test("with two broken servers, each gets its own findings under its own name", (
   });
   assert.deepEqual(
     findings.map((f) => f.field),
-    ["mcpServers.first.args", 'mcpServers["second one"].url'],
+    ["mcpServers.first.args", "mcpServers[…].url"],
   );
 });
 

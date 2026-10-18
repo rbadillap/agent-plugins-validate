@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-url",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.url",
+    "current": "https://u****:p****@api.example.com",
+    "fix": "a credential is in the URL: remove the user and the password from it, put the credential in \"headers\" (or in your secret store), and rotate it, because it is now in the repository",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#streamable-http-and-legacy-httpsse",
+    "line": 4
+  }
+]

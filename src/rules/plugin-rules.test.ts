@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../engine/check.ts";
-import { suggestName } from "./plugin-name.ts";
 import { canonicalSchema } from "./schema-version.ts";
-import { suggestVersion } from "./version-semver.ts";
 
-const NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
+const _NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
 
 function checkPlugin(manifest: Record<string, unknown>) {
   const text = JSON.stringify({
@@ -42,34 +40,24 @@ test("a name that is too long and also invalid is reported once, by plugin-name"
 test("a name that is only too long is reported by plugin-name with the cut name", () => {
   const [finding] = checkPlugin({ name: "a".repeat(70) });
   assert.equal(finding?.rule, "plugin-name");
-  assert.equal(finding?.fix, `use "${"a".repeat(64)}"`);
 });
 
-test("suggested names are always valid, or there is no suggestion", () => {
-  const samples = [
+test("a name's fix is an instruction with a generic example, never the name", () => {
+  for (const name of [
     "My Plugin",
-    "-tools",
+    "-start",
     "acme..tools",
-    "A--B",
-    "x_y_z",
-    "ÄÖÜ",
-    "a.-.b",
-    "...",
-    "  spaced  ",
-    "UPPER.case-Mixed",
-    `${"ab-".repeat(30)}`,
-    `${"a".repeat(63)}-b`,
-    `${"a".repeat(63)}..b`,
-    "🙂plugin🙂",
-  ];
-  for (const sample of samples) {
-    const suggestion = suggestName(sample);
-    if (suggestion !== null) {
-      assert.match(suggestion, NAME_PATTERN, sample);
-      assert.ok(suggestion.length <= 64, sample);
+    "___",
+    "x".repeat(70),
+  ]) {
+    const [finding] = checkPlugin({ name });
+    assert.match(finding?.fix ?? "", /kebab-case.*e\.g\. "my-plugin"/, name);
+    assert.ok(!(finding?.fix ?? "").includes(name), name);
+    // A name that is plain is shown, as a name; any other text is described.
+    if (!/^[A-Za-z0-9_.-]{1,64}$/.test(name)) {
+      assert.ok(!(finding?.current ?? "").includes(name), name);
     }
   }
-  assert.equal(suggestName("___"), null);
 });
 
 test("the spec's valid names pass and its invalid names fail", () => {
@@ -106,7 +94,13 @@ test("a version that isn't Semantic Versioning is only a notice", () => {
   const findings = checkPlugin({ name: "example-plugin", version: "v1.2" });
   assert.deepEqual(
     findings.map((finding) => [finding.rule, finding.level, finding.fix]),
-    [["version-semver", "notice", 'use "1.2.0"']],
+    [
+      [
+        "version-semver",
+        "notice",
+        'use a Semantic Versioning version, MAJOR.MINOR.PATCH, e.g. "1.0.0"',
+      ],
+    ],
   );
   assert.ok(findings.every((finding) => finding.level === "notice"));
 });
@@ -136,10 +130,14 @@ test("versions from the SemVer 2.0.0 grammar pass", () => {
   }
 });
 
-test("version fixes are only offered when the intent is clear", () => {
-  assert.equal(suggestVersion("v1.2"), "1.2.0");
-  assert.equal(suggestVersion("1.0"), "1.0.0");
-  assert.equal(suggestVersion("2"), "2.0.0");
-  assert.equal(suggestVersion("2024-10-01"), null);
-  assert.equal(suggestVersion("01.2.3"), null);
+test("a version's fix is an instruction with a generic example, never the version", () => {
+  for (const version of ["v1.2", "1.0", "2", "2024-10-01", "01.2.3"]) {
+    const [finding] = checkPlugin({ name: "example-plugin", version });
+    assert.equal(finding?.rule, "version-semver", version);
+    assert.equal(
+      finding?.fix,
+      'use a Semantic Versioning version, MAJOR.MINOR.PATCH, e.g. "1.0.0"',
+    );
+    assert.equal(finding?.current, `string (${version.length} chars)`);
+  }
 });

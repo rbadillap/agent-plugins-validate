@@ -109,7 +109,7 @@ test("a server that isn't an object is checked against a shape and reported by f
     mcp: { path: "mcp.json", text },
   }).findings;
   assert.equal(finding?.field, "mcpServers.broken");
-  assert.equal(finding?.current, '"node server.js"');
+  assert.equal(finding?.current, "string (14 chars)");
   assert.equal(finding?.fix, 'use an object with "type"');
 });
 
@@ -176,11 +176,11 @@ test("errors without an owner are translated, never shown in the validator's wor
     "mcpServers.local.command use a non-empty string",
     // biome-ignore lint/suspicious/noTemplateCurlyInString: the spec's placeholders, written as text
     'mcpServers.local.cwd use a value that starts with "./", "${PLUGIN_ROOT}" or "${PLUGIN_DATA}"',
-    'mcpServers.local.env.PLUGIN_ROOT remove "PLUGIN_ROOT"',
-    'mcpServers.local.url remove "url"',
+    "mcpServers.local.env.PLUGIN_ROOT remove this field",
+    "mcpServers.local.url remove this field",
     "name use a non-empty string",
     'name use a value that contains only lowercase letters, digits, hyphens and periods, starts and ends with a letter or digit, and has no "--" or ".."',
-    'skills remove "skills"',
+    "skills remove this field",
     'version use "3"',
   ]);
 });

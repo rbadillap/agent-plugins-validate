@@ -1,5 +1,5 @@
 import type { Problem, Rule, SchemaError } from "../engine/types.ts";
-import { quote } from "./util.ts";
+import { shownName } from "./util.ts";
 
 const STRING_FIELDS = [
   "version",
@@ -10,28 +10,10 @@ const STRING_FIELDS = [
 ];
 const AUTHOR_FIELDS = ["name", "email", "url"];
 
-function stringFix(value: unknown): string {
-  return typeof value === "number" || typeof value === "boolean"
-    ? `use ${quote(String(value))}`
-    : "use a string";
-}
-
-function keywordsFix(value: unknown): string {
-  if (typeof value === "string") {
-    const items = value
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item !== "");
-    if (items.length > 0) return `use [${items.map(quote).join(", ")}]`;
-  }
-  return 'use an array of strings, e.g. ["docs"]';
-}
-
-function authorFix(value: unknown): string {
-  return typeof value === "string"
-    ? `use {"name": ${quote(value)}}`
-    : 'use an object with "name", "email" or "url"';
-}
+const STRING = "use a string";
+const KEYWORDS = 'use an array of strings, e.g. ["docs", "search"]';
+const AUTHOR =
+  'use an object with "name", "email" or "url" strings, e.g. {"name": "Jane"}';
 
 /** Which metadata field an error is about, and what the fix is. */
 function fixFor(error: SchemaError): string | undefined {
@@ -39,20 +21,21 @@ function fixFor(error: SchemaError): string | undefined {
   if (typeof field !== "string") return undefined;
   if (error.keyword === "type") {
     if (error.path.length === 1) {
-      if (STRING_FIELDS.includes(field)) return stringFix(error.value);
-      if (field === "keywords") return keywordsFix(error.value);
-      if (field === "author") return authorFix(error.value);
+      if (field === "version") return 'use a string, e.g. "1.0.0"';
+      if (STRING_FIELDS.includes(field)) return STRING;
+      if (field === "keywords") return KEYWORDS;
+      if (field === "author") return AUTHOR;
     }
     if (error.path.length === 2) {
       if (field === "keywords" && typeof child === "number") {
-        return stringFix(error.value);
+        return STRING;
       }
       if (
         field === "author" &&
         typeof child === "string" &&
         AUTHOR_FIELDS.includes(child)
       ) {
-        return stringFix(error.value);
+        return STRING;
       }
     }
   }
@@ -61,7 +44,7 @@ function fixFor(error: SchemaError): string | undefined {
     field === "author" &&
     error.path.length === 2
   ) {
-    return `remove ${quote(child)}`;
+    return 'remove this field; an author has only "name", "email" and "url"';
   }
   return undefined;
 }
@@ -81,6 +64,12 @@ export const fieldType: Rule = {
     const fix = fixFor(error);
     return fix === undefined
       ? undefined
-      : { path: error.path, current: error.value, fix };
+      : {
+          path: error.path,
+          current: error.value,
+          // Keywords are names, so one that is plain is shown.
+          ...(error.path[0] === "keywords" ? shownName(error.value) : {}),
+          fix,
+        };
   },
 };

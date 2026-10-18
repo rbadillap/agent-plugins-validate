@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-command",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.command",
+    "current": "string (51 chars)",
+    "fix": "keep only the executable in \"command\" and move the remaining tokens, in order, to \"args\", e.g. \"command\": \"npx\", \"args\": [\"-y\", \"some-package\"]",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]

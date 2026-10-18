@@ -5,7 +5,7 @@
     "file": "plugin.json",
     "field": "(root)",
     "current": "(not valid JSON)",
-    "fix": "fix the JSON syntax: Unexpected token '}'",
+    "fix": "fix the JSON syntax at this line: check commas, quotes and brackets",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#52-manifest-object",
     "line": 1
   }

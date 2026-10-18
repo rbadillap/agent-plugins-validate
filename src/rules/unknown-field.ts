@@ -1,5 +1,4 @@
 import type { Problem, Rule, SchemaError } from "../engine/types.ts";
-import { quote } from "./util.ts";
 
 /** Owns top-level fields of `plugin.json` that the spec doesn't define. */
 export const unknownField: Rule = {
@@ -19,7 +18,7 @@ export const unknownField: Rule = {
     return {
       path: error.path,
       current: error.value,
-      fix: `remove ${quote(error.path[0])}; client data belongs under "extensions"`,
+      fix: 'remove this field; client data belongs under "extensions"',
     };
   },
 };

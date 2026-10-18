@@ -14,8 +14,8 @@
     "level": "error",
     "file": "mcp.json",
     "field": "servers",
-    "current": "{}",
-    "fix": "remove \"servers\"",
+    "current": "object (0 keys)",
+    "fix": "remove this field",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
     "line": 3
   },
@@ -24,8 +24,8 @@
     "level": "error",
     "file": "mcp.json",
     "field": "mcp",
-    "current": "{}",
-    "fix": "remove \"mcp\"",
+    "current": "object (0 keys)",
+    "fix": "remove this field",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
     "line": 4
   }

@@ -4,7 +4,7 @@
     "level": "error",
     "file": "mcp.json",
     "field": "mcpServers.local.headers",
-    "current": "{}",
+    "current": "object (0 keys)",
     "fix": "remove \"headers\"; only streamable-http and sse servers have it",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
     "line": 4

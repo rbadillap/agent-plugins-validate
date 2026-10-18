@@ -17,6 +17,8 @@ export const mcpVersionMatch: Rule = {
       {
         path: ["$schema"],
         current: canonicalSchema(ctx.specVersion, "mcp"),
+        // A supported identifier, from the registry: it holds nothing but a version.
+        currentText: JSON.stringify(canonicalSchema(ctx.specVersion, "mcp")),
         fix: `use the same version as plugin.json: ${JSON.stringify(canonicalSchema(pluginVersion, "mcp"))}`,
       },
     ];

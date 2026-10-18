@@ -4,7 +4,7 @@ import type {
   SchemaError,
   ServerType,
 } from "../engine/types.ts";
-import { quote } from "./util.ts";
+import { quote, shownName } from "./util.ts";
 
 const STDIO_FIELDS = ["command", "args", "env", "cwd"];
 const HTTP_FIELDS = ["url", "headers"];
@@ -13,12 +13,6 @@ const HTTP_SECTION = "Streamable HTTP and legacy HTTP+SSE";
 function sectionFor(branch: ServerType | null): string {
   if (branch === "stdio") return "stdio";
   return branch === null ? "7.2.1" : HTTP_SECTION;
-}
-
-function valueFix(value: unknown): string {
-  return typeof value === "number" || typeof value === "boolean"
-    ? `use ${quote(String(value))}`
-    : "use a string";
 }
 
 function missingFix(field: string): string {
@@ -30,7 +24,11 @@ function missingFix(field: string): string {
 /** What to do about a field that this server's shape doesn't have. */
 function extraFieldFix(field: string, branch: ServerType | null): string {
   if (field === "transport") return 'rename "transport" to "type"';
-  const remove = `remove ${quote(field)}`;
+  // Only the names the spec defines are repeated. Any other key can hold anything.
+  const known = [...STDIO_FIELDS, ...HTTP_FIELDS];
+  const remove = known.includes(field)
+    ? `remove ${quote(field)}`
+    : "remove this field";
   if (branch === "stdio" && HTTP_FIELDS.includes(field)) {
     return field === "url"
       ? `${remove}; stdio servers use "command"`
@@ -45,10 +43,7 @@ function extraFieldFix(field: string, branch: ServerType | null): string {
 }
 
 /** The fix for a value of the wrong type, by where it is in the server. */
-function typeFix(
-  path: SchemaError["path"],
-  value: unknown,
-): string | undefined {
+function typeFix(path: SchemaError["path"]): string | undefined {
   const field = path[2];
   if (path.length === 3) {
     switch (field) {
@@ -58,13 +53,8 @@ function typeFix(
         return 'use a string, e.g. "https://example.com/mcp"';
       case "cwd":
         return 'use a string, e.g. "./data"';
-      case "args": {
-        if (typeof value === "string") {
-          const items = value.split(/\s+/).filter((item) => item !== "");
-          if (items.length > 0) return `use [${items.map(quote).join(", ")}]`;
-        }
+      case "args":
         return 'use an array of strings, e.g. ["--port", "3000"]';
-      }
       case "env":
         return 'use an object of strings, e.g. {"PORT": "3000"}';
       case "headers":
@@ -73,7 +63,7 @@ function typeFix(
     return undefined;
   }
   if (path.length === 4 && ["args", "env", "headers"].includes(String(field))) {
-    return valueFix(value);
+    return "use a string";
   }
   return undefined;
 }
@@ -112,10 +102,14 @@ export const mcpServerFields: Rule = {
         : undefined;
     }
     if (error.keyword === "additionalProperties" && error.path.length === 3) {
-      return problem(extraFieldFix(field, branch));
+      const extra = problem(extraFieldFix(field, branch));
+      // The value of `transport` is a transport name, so a plain one is shown.
+      return field === "transport"
+        ? { ...extra, ...shownName(error.value) }
+        : extra;
     }
     if (error.keyword === "type") {
-      const fix = typeFix(error.path, error.value);
+      const fix = typeFix(error.path);
       return fix === undefined ? undefined : problem(fix);
     }
     return undefined;

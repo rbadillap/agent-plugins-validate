@@ -5,7 +5,7 @@ import type {
   RuleContext,
   SchemaError,
 } from "../engine/types.ts";
-import { isObject, quote } from "./util.ts";
+import { isObject } from "./util.ts";
 
 /** The one other top-level field that holds an object, when `mcpServers` is missing. */
 function renameCandidate(ctx: RuleContext): string | undefined {
@@ -56,8 +56,8 @@ export const mcpTopLevel: Rule = {
         current: error.value,
         fix:
           renameCandidate(ctx) === field
-            ? `rename ${quote(field)} to "mcpServers"`
-            : `remove ${quote(field)}`,
+            ? 'rename this field to "mcpServers"'
+            : "remove this field",
       };
     }
     return undefined;

@@ -4,7 +4,7 @@
     "level": "warning",
     "file": "plugin.json",
     "field": "extensions",
-    "current": "\"com.example.client\"",
+    "current": "string (18 chars)",
     "fix": "use an object keyed by namespace, e.g. {\"com.example.client\": {}}",
     "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#81-manifest-extension-data",
     "line": 4

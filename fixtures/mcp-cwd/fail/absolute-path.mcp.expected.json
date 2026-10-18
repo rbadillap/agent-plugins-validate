@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-cwd",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.s.cwd",
+    "current": "string (6 chars)",
+    "fix": "start the path with \"./\", \"${PLUGIN_ROOT}/\" or \"${PLUGIN_DATA}/\", e.g. \"./data\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "rule": "mcp-command",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.server.command",
+    "current": "string (13 chars)",
+    "fix": "move the executable inside the plugin and use a path starting with \"./\", e.g. \"./bin/server\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  },
+  {
+    "rule": "mcp-cwd",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.server.cwd",
+    "current": "string (4 chars)",
+    "fix": "start the path with \"./\", \"${PLUGIN_ROOT}/\" or \"${PLUGIN_DATA}/\", e.g. \"./data\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#stdio",
+    "line": 4
+  }
+]
