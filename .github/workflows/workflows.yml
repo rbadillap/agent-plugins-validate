@@ -23,7 +23,6 @@ jobs:
           collect: all
           advanced-security: false
           online-audits: false
-          token: ""
 
   actionlint:
     runs-on: ubuntu-24.04
