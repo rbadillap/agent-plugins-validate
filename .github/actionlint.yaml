@@ -3,5 +3,5 @@ paths:
     ignore:
       # actionlint 1.7.12 doesn't know the "$/" self-reference yet:
       # https://github.com/rhysd/actionlint/issues/711 and https://github.com/rhysd/actionlint/issues/760
-      - 'specifying action "\$/\.github/actions/[a-z-]+" in invalid format because ref is missing'
+      - 'specifying action "\$/(?:\.github/actions/[a-z-]+)?" in invalid format because ref is missing'
       - 'reusable workflow call "\$/\.github/workflows/[a-z-]+\.yml" at "uses" is not following the format'
