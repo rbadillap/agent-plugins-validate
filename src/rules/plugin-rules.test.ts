@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { check } from "../engine/check.ts";
 import { suggestName } from "./plugin-name.ts";
 import { canonicalSchema } from "./schema-version.ts";
+import { suggestVersion } from "./version-semver.ts";
 
 const NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
 
@@ -99,4 +100,46 @@ test("a clean manifest with every metadata field has no findings", () => {
     }),
     [],
   );
+});
+
+test("a version that isn't Semantic Versioning is only a notice", () => {
+  const findings = checkPlugin({ name: "example-plugin", version: "v1.2" });
+  assert.deepEqual(
+    findings.map((finding) => [finding.rule, finding.level, finding.fix]),
+    [["version-semver", "notice", 'use "1.2.0"']],
+  );
+  assert.ok(findings.every((finding) => finding.level === "notice"));
+});
+
+test("a version that isn't a string is a field-type error, not a notice", () => {
+  const findings = checkPlugin({ name: "example-plugin", version: 1.2 });
+  assert.deepEqual(
+    findings.map((finding) => finding.rule),
+    ["field-type"],
+  );
+});
+
+test("versions from the SemVer 2.0.0 grammar pass", () => {
+  for (const version of [
+    "0.0.0",
+    "1.2.0",
+    "1.0.0-alpha",
+    "1.0.0-0.3.7",
+    "1.0.0+20130313144700",
+    "1.0.0-beta.1+build.5",
+  ]) {
+    assert.deepEqual(
+      checkPlugin({ name: "example-plugin", version }),
+      [],
+      version,
+    );
+  }
+});
+
+test("version fixes are only offered when the intent is clear", () => {
+  assert.equal(suggestVersion("v1.2"), "1.2.0");
+  assert.equal(suggestVersion("1.0"), "1.0.0");
+  assert.equal(suggestVersion("2"), "2.0.0");
+  assert.equal(suggestVersion("2024-10-01"), null);
+  assert.equal(suggestVersion("01.2.3"), null);
 });

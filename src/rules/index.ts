@@ -9,6 +9,7 @@ import { requiredFields } from "./required-fields.ts";
 import { schemaVersion } from "./schema-version.ts";
 import { schemaViolation } from "./schema-violation.ts";
 import { unknownField } from "./unknown-field.ts";
+import { versionSemver } from "./version-semver.ts";
 
 export { schemaViolation };
 
@@ -22,6 +23,7 @@ export const rules: readonly Rule[] = [
   unknownField,
   extensionsType,
   extensionsNamespace,
+  versionSemver,
   mcpServerType,
   schemaViolation,
 ];
