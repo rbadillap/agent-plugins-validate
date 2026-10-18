@@ -49,8 +49,8 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 
 - Issues first: each change starts as an issue with Problem, Behavior, Acceptance criteria, Security notes and Out of scope. Only issues labeled `approved` are built, one PR each.
 - **Say how we'll know it works.** An issue that changes code, schemas or workflows has a section **How we'll know it works**: a short list of "when …, then …" sentences, each one something that could turn out false. For example: "When a PR changes only `README.md`, every area is skipped and `gate` passes." If one depends on how GitHub behaves, link GitHub's docs or a run that showed it. Approving the issue approves this list too.
-- **Decisions made while building go to the issue.** When the work needs a decision the issue didn't make, comment on the issue with the decision and why. The work can go on, but the PR is merged only after the owner agrees in that comment.
-- These two rules apply to issues approved after #60 is closed. Earlier issues and their PRs are not changed.
+- **Decisions made while building go to the issue.** When the work needs a decision the issue didn't make, open a sub-issue of the issue for it, titled `Decision: …`, with the decision and why. The owner closes it as **completed** to accept it or **not planned** to reject it. The work can go on, but the PR is merged only when every decision sub-issue is closed, and it follows each outcome. Known limit: the parent issue's sub-issue progress counts a `not planned` sub-issue as done, so the outcome of each decision is read on the sub-issue, not on the parent's progress bar.
+- **Say how we'll know it works** applies to issues approved after #60 is closed. Decision sub-issues apply to issues approved after #66 is closed; an issue approved between the two keeps the comment: the decision goes in a comment on the issue, and the PR is merged only after the owner agrees in that comment. Earlier issues and their PRs are not changed.
 - Commits and PR titles use Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `ci:`, `build:`, `chore:`, `refactor:`). Commits are signed.
 - Merging is the owner's decision.
 
