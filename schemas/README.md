@@ -22,3 +22,4 @@ Release tags only. Never fetch from a branch, and never vendor a draft version.
 3. Write `SHA256SUMS` in `shasum -a 256` format, one line per schema.
 4. Write `NOTICE.md` with the source, tag, commit, date fetched and license.
 5. In the PR, state the tag, the commit and the date.
+
