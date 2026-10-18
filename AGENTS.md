@@ -49,8 +49,8 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 
 - Issues first: each change starts as an issue with Problem, Behavior, Acceptance criteria, Security notes and Out of scope. Only issues labeled `approved` are built, one PR each.
 - **Say how we'll know it works.** An issue that changes code, schemas or workflows has a section **How we'll know it works**: a short list of "when …, then …" sentences, each one something that could turn out false. For example: "When a PR changes only `README.md`, every area is skipped and `gate` passes." If one depends on how GitHub behaves, link GitHub's docs or a run that showed it. Approving the issue approves this list too.
-- **Decisions made while building go to the issue.** When the work needs a decision the issue didn't make, comment on the issue with the decision and why. The work can go on, but the PR is merged only after the owner agrees in that comment.
-- These two rules apply to issues approved after #60 is closed. Earlier issues and their PRs are not changed.
+- **Decisions made while building go to the owner.** When the work needs a decision the issue didn't make, stop and ask the owner. The PR body records the decision with the owner's words.
+- **The owner's direct instruction wins.** It overrides any process in this file. If following one would go against what the owner said, follow the owner and say so in the PR.
 - Commits and PR titles use Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `ci:`, `build:`, `chore:`, `refactor:`). Commits are signed.
 - Merging is the owner's decision.
 
