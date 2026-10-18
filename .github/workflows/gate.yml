@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       code: ${{ steps.areas.outputs.code }}
@@ -55,8 +55,8 @@ jobs:
               echo "$1=false" >> "$GITHUB_OUTPUT"
             fi
           }
-          area code '^(src/|fixtures/|schemas/|dist/)|^(package\.json|package-lock\.json|tsconfig\.json|biome\.json|Makefile|\.npmrc)$'
-          area schemas '^schemas/'
+          area code '^(src/|fixtures/|schemas/|dist/)|^(package\.json|package-lock\.json|tsconfig\.json|biome\.json|Makefile|\.npmrc|\.gitattributes)$|^\.github/(actions/setup/|workflows/(code|gate)\.yml$)'
+          area schemas '^(schemas/|\.github/workflows/schemas\.yml$)'
           area workflows '^(\.github/|action\.yml$)'
 
   code:
@@ -77,7 +77,7 @@ jobs:
   gate:
     if: always()
     needs: [changes, code, schemas, workflows]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Fail if any area failed or was cancelled

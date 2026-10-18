@@ -67,4 +67,4 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 
 ## CI
 
-CI is described in [docs/ci.md](docs/ci.md). Checks are split by area, and `gate` is the only required check: it always reports, and fails when any area that ran failed.
+CI is described in [docs/ci.md](docs/ci.md). Checks are split by area, and `gate` is the only required check: it always reports, and fails when any area that ran failed or was cancelled.
