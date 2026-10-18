@@ -202,7 +202,7 @@ jobs:
 | Commit SHA (recommended) | `rbadillap/agent-plugins-validate@<full-commit-sha> # v1.0.0` | Exactly the code you reviewed. A SHA can't be moved to point at different code. Dependabot updates it and keeps the version comment current. |
 | Major tag | `rbadillap/agent-plugins-validate@v1` | Every v1 fix without touching your workflow. The `v1` tag moves with each release. |
 
-Every release is immutable and has a build attestation:
+Every release is immutable and has a build attestation. To check that the `dist/index.js` you run was built by this repository's release workflow, download it from the tag you use and verify it ([how releases are made](docs/releasing.md)):
 
 ```bash
 gh attestation verify dist/index.js --repo rbadillap/agent-plugins-validate
