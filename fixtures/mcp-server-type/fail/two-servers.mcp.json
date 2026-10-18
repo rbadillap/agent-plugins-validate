@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "first": { "type": "streamableHttp", "url": "https://one.example.com/mcp" },
+    "second one": { "type": "Local", "command": "./bin/server" },
+    "fine": { "type": "sse", "url": "https://three.example.com/sse" }
+  }
+}

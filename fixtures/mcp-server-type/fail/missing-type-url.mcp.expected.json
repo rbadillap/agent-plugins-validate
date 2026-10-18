@@ -1,0 +1,11 @@
+[
+  {
+    "rule": "mcp-server-type",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.docs.type",
+    "current": "(missing)",
+    "fix": "add \"type\": \"streamable-http\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration"
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "rule": "json-syntax",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "(root)",
+    "current": "(not valid JSON)",
+    "fix": "fix the JSON syntax: Expected double-quoted property name",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#722-loading-rules"
+  }
+]
