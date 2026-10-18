@@ -37,7 +37,7 @@ A rule is a small module in `src/rules/`:
 | `check` | finds the problems in a parsed manifest |
 | `fix` | builds the concrete fix for each problem |
 
-Each rule has fixtures in `fixtures/<rule-id>/`: at least one manifest that passes and one that fails, with the expected findings next to them.
+Each rule has fixtures in `fixtures/<rule-id>/`: at least one manifest that passes and one that fails, with the expected findings next to them. A fixture's kind is in its name: `x.plugin.json`, `x.mcp.json` (checked with a minimal `plugin.json` beside it) or `x.mcp-only.json` (no `plugin.json`).
 
 ## Folder map
 
@@ -52,6 +52,7 @@ Each rule has fixtures in `fixtures/<rule-id>/`: at least one manifest that pass
 | `src/github/` | Opt-in issues. `api.ts` is the only code that talks to the network |
 | `schemas/<version>/` | Vendored official schemas, their checksum and Apache-2.0 notice |
 | `fixtures/` | Pass and fail manifests per rule |
+| `src/testing/` | Test support: the fixture loader shared by the tests. Never bundled |
 | `dist/` | The bundled Action, built from `src/` and committed |
 | `.github/workflows/` | CI by area, an always-reporting `gate`, releases |
 | `docs/` | Design documents like this one |
