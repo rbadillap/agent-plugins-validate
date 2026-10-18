@@ -8,6 +8,6 @@
 - **Fetched:** 2026-10-18
 - **License:** CC0-1.0. The license text is in [`LICENSE`](LICENSE), copied from `text/CC0-1.0.txt` at the same tag.
 
-The files are unmodified, and `SHA256SUMS` records their checksums (`make check-schemas` verifies them). How to update them is in [`docs/vendored.md`](../../../docs/vendored.md).
+The files are unmodified, and `SHA256SUMS` records their checksums (a test in `src/spdx/`, run by `make test`, verifies them). How to update them is in [`docs/spdx.md`](../../../docs/spdx.md).
 
 The rest of this repository is licensed under MIT. See the [`LICENSE`](../../../LICENSE) at the repository root.

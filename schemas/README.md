@@ -11,7 +11,7 @@ schemas/<version>/
 └── NOTICE.md
 ```
 
-`make check-schemas` recomputes every `SHA256SUMS` and fails on any mismatch, or on a schema file that no checksum line lists. Never edit a vendored schema. [`docs/vendored.md`](../docs/vendored.md) covers all the vendored data, the SPDX License List included.
+`make check-schemas` recomputes every `SHA256SUMS` and fails on any mismatch, or on a schema file that no checksum line lists. Never edit a vendored schema.
 
 ## Adding a version
 

@@ -52,7 +52,7 @@ Each rule has fixtures in `fixtures/<rule-id>/`: at least one manifest that pass
 | `src/report/` | Annotations, job summary, outputs, JSON report. The only code that writes files |
 | `src/github/` | Opt-in issues. `api.ts` is the only code that talks to the network |
 | `schemas/<version>/` | Vendored official schemas, their checksum and Apache-2.0 notice |
-| `data/spdx/<version>/` | The vendored SPDX License List, its checksum and CC0-1.0 notice ([docs/vendored.md](vendored.md)) |
+| `data/spdx/<version>/` | The SPDX License List copied into the repository, its checksum and CC0-1.0 notice ([docs/spdx.md](spdx.md)) |
 | `fixtures/` | Pass and fail manifests per rule |
 | `src/testing/` | Test support: the fixture loader shared by the tests. Never bundled |
 | `dist/` | The bundled Action, built from `src/` and committed |

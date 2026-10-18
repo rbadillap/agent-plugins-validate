@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseExpression } from "./expression.ts";
 import { LICENSE_IDS, SPDX_LIST_VERSION } from "./list.ts";
@@ -59,4 +60,30 @@ test("the list in use is the one vendored in data/spdx/", () => {
   const folders = readdirSync(new URL("../../data/spdx/", import.meta.url));
   assert.deepEqual(folders, [SPDX_LIST_VERSION]);
   assert.ok(LICENSE_IDS.has("MIT"));
+});
+
+// The files in a list folder that are not data, and so are not in SHA256SUMS.
+const NOT_DATA = new Set(["SHA256SUMS", "LICENSE", "NOTICE.md"]);
+
+test("the SPDX list matches its SHA256SUMS, and every data file is listed", () => {
+  const folder = new URL(
+    `../../data/spdx/${SPDX_LIST_VERSION}/`,
+    import.meta.url,
+  );
+  const listed = new Map<string, string>();
+  for (const line of readFileSync(new URL("SHA256SUMS", folder), "utf8")
+    .split("\n")
+    .filter((line) => line !== "")) {
+    const match = /^([0-9a-f]{64}) {2}(\S+)$/.exec(line);
+    assert.ok(match !== null, `malformed SHA256SUMS line: ${line}`);
+    listed.set(match[2] as string, match[1] as string);
+  }
+  const data = readdirSync(folder).filter((name) => !NOT_DATA.has(name));
+  assert.deepEqual(data.sort(), [...listed.keys()].sort());
+  for (const [name, sum] of listed) {
+    const actual = createHash("sha256")
+      .update(readFileSync(new URL(name, folder)))
+      .digest("hex");
+    assert.equal(actual, sum, name);
+  }
 });
