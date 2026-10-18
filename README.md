@@ -189,3 +189,4 @@ The checks follow [Agent Plugins 1.0.0](https://github.com/agentplugins/agent-pl
 ## License
 
 [MIT](LICENSE). The bundled schemas keep their Apache-2.0 license.
+
