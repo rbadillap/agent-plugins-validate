@@ -92,12 +92,17 @@ export const mcpServerType: Rule = {
     const noBranch = error.keyword === "oneOf" && error.path.length === 2;
     if (!typeField && !noBranch) return undefined;
     const written = (server.value as Record<string, unknown>).type;
-    // `transport` instead of `type` is reported once, by mcp-server-fields, as a rename.
-    if (
-      written === undefined &&
-      Object.hasOwn(server.value as Record<string, unknown>, "transport")
-    ) {
-      return "drop";
+    // `transport` instead of `type` is a rename. When the shape could be inferred, mcp-server-fields
+    // reports it on the `transport` field, so this rule stays silent; when it couldn't, nothing else
+    // would report anything, so this rule reports the rename itself.
+    const object = server.value as Record<string, unknown>;
+    if (written === undefined && Object.hasOwn(object, "transport")) {
+      if (server.branch !== null) return "drop";
+      return {
+        path: [...error.path.slice(0, 2), "transport"],
+        current: object.transport,
+        fix: 'rename "transport" to "type"',
+      };
     }
     return {
       path: [...error.path.slice(0, 2), "type"],

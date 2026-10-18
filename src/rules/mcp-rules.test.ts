@@ -229,3 +229,29 @@ test("no finding from the MCP fixtures quotes the validator", () => {
     }
   }
 });
+
+test("a server with transport and no type is never silently accepted", () => {
+  const others: Record<string, unknown>[] = [
+    {},
+    { command: "node" },
+    { url: "https://a.example.com/mcp" },
+    { command: "node", url: "https://a.example.com/mcp" },
+    { command: "node", args: [] },
+    { args: [], headers: {} },
+  ];
+  for (const transport of ["stdio", "http", 5, null]) {
+    for (const rest of others) {
+      const findings = checkServers({ s: { transport, ...rest } });
+      assert.ok(
+        findings.some((f) => f.fix.includes('rename "transport" to "type"')),
+        JSON.stringify({ transport, ...rest }),
+      );
+      // The rename is reported once.
+      assert.equal(
+        findings.filter((f) => f.fix.includes('rename "transport"')).length,
+        1,
+        JSON.stringify({ transport, ...rest }),
+      );
+    }
+  }
+});

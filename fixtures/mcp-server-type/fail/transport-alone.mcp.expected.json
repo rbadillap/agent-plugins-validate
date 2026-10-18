@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-server-type",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers.local.transport",
+    "current": "\"stdio\"",
+    "fix": "rename \"transport\" to \"type\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 4
+  }
+]
