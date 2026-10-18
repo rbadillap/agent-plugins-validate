@@ -1,0 +1,30 @@
+name: Agent Plugins Validate
+description: Check plugin.json and mcp.json against the Agent Plugins specification.
+author: rbadillap
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  manifests:
+    description: Files or glob patterns, one per line, relative to the repository root. Only files named plugin.json or mcp.json are read.
+    required: false
+    default: |
+      plugin.json
+      mcp.json
+  open-issues:
+    description: Open one issue per regression on the default branch. Requires issues write permission.
+    required: false
+    default: "false"
+
+outputs:
+  valid:
+    description: "true when no finding is an error."
+  findings:
+    description: Number of findings at any level.
+  report:
+    description: Path of the JSON report.
+
+runs:
+  using: node24
+  main: dist/index.js
