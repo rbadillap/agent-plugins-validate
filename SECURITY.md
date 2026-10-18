@@ -21,7 +21,7 @@ You'll get an answer within 7 days. A fix and a GitHub security advisory follow 
 
 ## What's in scope
 
-- Anything that makes the Action read outside the workspace, reach a host other than `api.github.com`, or use the token beyond what [Permissions](README.md#permissions) describes.
+- Anything that makes the Action read outside the workspace, reach a host other than `api.github.com`, or use the token beyond what the README's permissions section describes.
 - Any way for text from a manifest (a secret, a path, a key) to appear in an annotation, the job summary, the report or an issue.
-- Issue writes that the [Issues](README.md#open-issues-on-regressions) section says the Action never makes.
+- Issue writes that the README says the Action never makes.
 - The integrity of a release: a `dist/index.js` that `gh attestation verify` rejects.
