@@ -111,8 +111,8 @@ export function renderSummary(
     for (const warning of warnings) out.push(`- ${codeSpan(warning)}`);
     out.push("");
   }
-  for (const note of options.issueNotes ?? []) out.push(note, "");
   if (options.issuesLine !== null) out.push(options.issuesLine, "");
+  for (const note of options.issueNotes ?? []) out.push(note, "");
   return `${out.join("\n").trimEnd()}\n`;
 }
 

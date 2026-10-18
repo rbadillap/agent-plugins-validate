@@ -10512,8 +10512,9 @@ function reportUnreadable(kind, entry, newest, out) {
     ...entry.detail === void 0 ? {} : { currentText: entry.detail },
     fix
   };
-  out.result.findings.push(
-    toFinding(rule, kind, entry.path, newest, problem, void 0)
+  out.add(
+    toFinding(rule, kind, entry.path, newest, problem, void 0),
+    problem.path
   );
   out.result.files.push({ file: entry.path, kind, specVersion: null });
 }
@@ -10542,8 +10543,9 @@ function checkFile(kind, entry, registry2, rules2, sibling, out) {
       locator ??= createLocator(entry.text);
       position = locator(problem.path);
     }
-    out.result.findings.push(
-      toFinding(rule, kind, entry.path, version2, problem, position)
+    out.add(
+      toFinding(rule, kind, entry.path, version2, problem, position),
+      problem.path
     );
   };
   const base = {
@@ -10583,7 +10585,15 @@ function checkFile(kind, entry, registry2, rules2, sibling, out) {
   }
 }
 function inspect(input, registry2 = vendoredRegistry(), rules2 = rules) {
-  const out = { result: { findings: [], files: [] }, claims: [] };
+  const paths = /* @__PURE__ */ new Map();
+  const out = {
+    result: { findings: [], paths: [], files: [] },
+    claims: [],
+    add: (finding, path4) => {
+      out.result.findings.push(finding);
+      paths.set(finding, path4);
+    }
+  };
   if (input.plugin !== void 0) {
     checkEntry("plugin", input.plugin, registry2, rules2, void 0, out);
   }
@@ -10595,11 +10605,219 @@ function inspect(input, registry2 = vendoredRegistry(), rules2 = rules) {
     checkEntry("mcp", input.mcp, registry2, rules2, sibling, out);
   }
   out.result.findings.sort(compareFindings);
+  out.result.paths = out.result.findings.map((f) => paths.get(f) ?? []);
   return out;
 }
 function check(input, registry2, rules2) {
   return inspect(input, registry2, rules2).result;
 }
+
+// src/github/api.ts
+var TIMEOUT_MS = 1e4;
+var BUDGET_MS = 6e4;
+var API_VERSION = "2022-11-28";
+var ApiError = class extends Error {
+  kind;
+  status;
+  /** What the request was for, so a note can say whether a read or a write failed. */
+  write;
+  /** `contents` for reads of earlier versions of files, `tracker` for issues, labels and the user. */
+  area;
+  constructor(kind, write, status, area = "tracker") {
+    super(
+      `GitHub API error: ${kind}${status === void 0 ? "" : ` (${status})`}`
+    );
+    this.kind = kind;
+    this.status = status;
+    this.write = write;
+    this.area = area;
+  }
+};
+function allowedRequests(repository) {
+  const repo = `/repos/${repository}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [
+    { method: "GET", path: /^\/user$/ },
+    { method: "GET", path: new RegExp(`^${repo}/contents/[^?#]+$`) },
+    {
+      method: "GET",
+      path: new RegExp(`^${repo}/commits/(?:[0-9a-f]{40}|[0-9a-f]{64})$`)
+    },
+    { method: "GET", path: new RegExp(`^${repo}/labels/[A-Za-z0-9_.-]+$`) },
+    { method: "POST", path: new RegExp(`^${repo}/labels$`) },
+    { method: "GET", path: new RegExp(`^${repo}/issues$`) },
+    { method: "POST", path: new RegExp(`^${repo}/issues$`) },
+    { method: "PATCH", path: new RegExp(`^${repo}/issues/[0-9]+$`) },
+    { method: "POST", path: new RegExp(`^${repo}/issues/[0-9]+/comments$`) }
+  ];
+}
+function encodePath(path4) {
+  const segments = path4.split("/");
+  if (segments.some((s) => s === "" || s === "." || s === "..")) {
+    throw new Error("A path for the contents API must have plain segments");
+  }
+  return segments.map(encodeURIComponent).join("/");
+}
+function createClient(options) {
+  const base = new URL(options.apiUrl);
+  const doFetch = options.fetch ?? globalThis.fetch;
+  const now = options.now ?? Date.now;
+  const started = now();
+  const allowed = allowedRequests(options.repository);
+  const repo = `/repos/${options.repository}`;
+  async function request(method, pathname, init = {}) {
+    const write = method !== "GET";
+    const area = init.area ?? "tracker";
+    const prefix = base.pathname.replace(/\/$/, "");
+    const url = new URL(`${prefix}${pathname}`, base);
+    for (const [key, value] of Object.entries(init.query ?? {})) {
+      url.searchParams.set(key, value);
+    }
+    if (url.origin !== base.origin) {
+      throw new Error("A request left GITHUB_API_URL, so it was not sent");
+    }
+    const finalPath = url.pathname.startsWith(prefix) ? url.pathname.slice(prefix.length) : "";
+    if (!allowed.some((a) => a.method === method && a.path.test(finalPath))) {
+      throw new Error(
+        `The Action does not make this request: ${method} ${finalPath}`
+      );
+    }
+    const remaining = BUDGET_MS - (now() - started);
+    if (remaining <= 0) throw new ApiError("network", write, void 0, area);
+    let response;
+    try {
+      response = await doFetch(url, {
+        method,
+        redirect: "error",
+        signal: AbortSignal.timeout(Math.min(TIMEOUT_MS, remaining)),
+        headers: {
+          authorization: `Bearer ${options.token}`,
+          accept: "application/vnd.github+json",
+          "x-github-api-version": API_VERSION,
+          "user-agent": "agent-plugins-validate",
+          ...init.body === void 0 ? {} : { "content-type": "application/json" }
+        },
+        ...init.body === void 0 ? {} : { body: JSON.stringify(init.body) }
+      });
+    } catch {
+      throw new ApiError("network", write, void 0, area);
+    }
+    const status = response.status;
+    if (status === 429 || status === 403 && (response.headers.get("x-ratelimit-remaining") === "0" || response.headers.get("retry-after") !== null)) {
+      throw new ApiError("rate-limit", write, status, area);
+    }
+    let json = null;
+    try {
+      json = await response.json();
+    } catch {
+      json = null;
+    }
+    return { status, json };
+  }
+  function fail(status, write, area = "tracker") {
+    if (status === 403 || status === 401) {
+      throw new ApiError("forbidden", write, status, area);
+    }
+    if (status === 410) throw new ApiError("gone", write, status, area);
+    throw new ApiError("other", write, status, area);
+  }
+  const ok = (status) => status >= 200 && status < 300;
+  return {
+    async getUser() {
+      const { status, json } = await request("GET", "/user");
+      if (status === 200 && typeof json?.login === "string") {
+        return json.login;
+      }
+      if (status === 401 || status === 403 || status === 404) return null;
+      return fail(status, false);
+    },
+    async getContents(path4, ref) {
+      const { status, json } = await request(
+        "GET",
+        `${repo}/contents/${encodePath(path4)}`,
+        {
+          query: { ref },
+          area: "contents"
+        }
+      );
+      if (status === 404) return { status: "absent" };
+      if (!ok(status)) return fail(status, false, "contents");
+      const file = json;
+      if (Array.isArray(json) || file === null || file.type !== "file" || file.encoding !== "base64" || typeof file.content !== "string") {
+        return { status: "unusable" };
+      }
+      const text = Buffer.from(file.content, "base64").toString("utf8");
+      return {
+        status: "ok",
+        text: text.startsWith("\uFEFF") ? text.slice(1) : text
+      };
+    },
+    async commitExists(sha) {
+      const { status } = await request("GET", `${repo}/commits/${sha}`, {
+        area: "contents"
+      });
+      if (status === 404 || status === 422) return false;
+      if (!ok(status)) return fail(status, false, "contents");
+      return true;
+    },
+    async ensureLabel(name) {
+      const found = await request(
+        "GET",
+        `${repo}/labels/${encodeURIComponent(name)}`
+      );
+      if (ok(found.status)) return;
+      if (found.status !== 404) return fail(found.status, false);
+      const made = await request("POST", `${repo}/labels`, {
+        body: {
+          name,
+          color: "0e8a16",
+          description: "Opened by agent-plugins-validate"
+        }
+      });
+      if (!ok(made.status) && made.status !== 422) fail(made.status, true);
+    },
+    async listIssues(label, page) {
+      const { status, json } = await request("GET", `${repo}/issues`, {
+        query: {
+          labels: label,
+          state: "all",
+          per_page: "100",
+          page: String(page)
+        }
+      });
+      if (!ok(status)) return fail(status, false);
+      return Array.isArray(json) ? json : [];
+    },
+    async createIssue(input) {
+      const { status, json } = await request("POST", `${repo}/issues`, {
+        body: input
+      });
+      if (!ok(status)) return fail(status, true);
+      return json;
+    },
+    async updateIssue(number, patch) {
+      const { status, json } = await request(
+        "PATCH",
+        `${repo}/issues/${number}`,
+        { body: patch }
+      );
+      if (!ok(status)) return fail(status, true);
+      return json;
+    },
+    async addComment(number, body) {
+      const { status } = await request(
+        "POST",
+        `${repo}/issues/${number}/comments`,
+        {
+          body: { body }
+        }
+      );
+      if (!ok(status)) fail(status, true);
+    }
+  };
+}
+
+// src/github/issues.ts
+import { createHash } from "node:crypto";
 
 // src/report/escape.ts
 function escapeData(text) {
@@ -10630,6 +10848,371 @@ function renderFix(fix) {
     last = match.index + match[0].length;
   }
   return out + escapeMarkdown(fix.slice(last));
+}
+
+// src/github/issues.ts
+var LABEL = "agent-plugins-validate";
+var MAX_OPENED = 10;
+var MAX_WRITES = 50;
+var MAX_PAGES = 10;
+var ZEROS = "0".repeat(40);
+var COMMIT = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+var GATES = ["json-syntax", "schema-version"];
+function issueMode(event) {
+  if (event.defaultBranch === void 0) return "none";
+  if (event.ref !== `refs/heads/${event.defaultBranch}`) return "none";
+  if (event.eventName === "push")
+    return event.forced === true ? "update-close" : "full";
+  if (event.eventName === "workflow_dispatch") return "update-close";
+  return "none";
+}
+function sha256(text) {
+  return createHash("sha256").update(text).digest("hex");
+}
+function fingerprint(finding, path4) {
+  return sha256(JSON.stringify([finding.rule, finding.file, path4]));
+}
+var MARKER = /<!-- agent-plugins-validate:v1 fingerprint=([0-9a-f]{64}) current=([0-9a-f]{64}) file=([0-9a-f]{64}) rule=([a-z][a-z0-9-]{0,63}) -->/;
+function marker(finding, path4) {
+  return `<!-- agent-plugins-validate:v1 fingerprint=${fingerprint(finding, path4)} current=${sha256(finding.current)} file=${sha256(finding.file)} rule=${finding.rule} -->`;
+}
+function parseMarker(body) {
+  const match = MARKER.exec(body ?? "");
+  if (match === null) return null;
+  const [, fingerprint2 = "", current = "", file = "", rule = ""] = match;
+  return { fingerprint: fingerprint2, current, file, rule };
+}
+function short(sha) {
+  return sha.slice(0, 7);
+}
+function title(finding) {
+  const cut = (text) => text.length > 80 ? `${text.slice(0, 79)}\u2026` : text;
+  return `${codeSpan(cut(finding.file))}: ${codeSpan(cut(finding.field))} no longer follows the Agent Plugins spec`;
+}
+function specVersion(finding) {
+  return /\/v(\d+\.\d+\.\d+)\//.exec(finding.spec)?.[1] ?? "1.0.0";
+}
+function issueBody(finding, path4, sha, before) {
+  const label = sectionLabel(finding.spec) ?? "spec";
+  return [
+    `${codeSpan(finding.field)} in ${codeSpan(finding.file)} stopped following the Agent Plugins spec (${specVersion(finding)}) in ${short(sha)}.`,
+    "",
+    "| Rule | Current | Fix | Spec |",
+    "| --- | --- | --- | --- |",
+    `| ${codeSpan(finding.rule)} | ${codeSpan(finding.current)} | ${renderFix(finding.fix)} | [${label}](${finding.spec}) |`,
+    "",
+    `It passed at ${short(before)}. This issue closes itself when the rule passes again.`,
+    "",
+    marker(finding, path4),
+    ""
+  ].join("\n");
+}
+function issuesSummaryLine(outcome) {
+  const n = (list2) => list2.length;
+  return `Issues: opened ${n(outcome.opened)}, reopened ${n(outcome.reopened)}, updated ${n(outcome.updated)}, closed ${n(outcome.closed)}.`;
+}
+function link(issue) {
+  return { number: issue.number, url: issue.html_url };
+}
+function linkMarkdown(item) {
+  return /^https:\/\//.test(item.url) ? `[#${item.number}](${item.url})` : `#${item.number}`;
+}
+var NOTES = {
+  rateLimit: "Issues: skipped, GitHub's API rate limit was reached. They'll catch up on the next push.",
+  write: "Issues: on, but the token can't write issues. Add issues: write to the job's permissions.",
+  read: "Issues: on, but the token can't read earlier versions of the manifests, so no regression could be proven.",
+  gone: "Issues: on, but issues are turned off in this repository.",
+  readIssues: "Issues: on, but the token can't read this repository's issues. Add issues: write to the job's permissions.",
+  network: "Issues: skipped, GitHub's API didn't answer.",
+  other: "Issues: skipped, GitHub's API answered with an error or something unexpected happened. Your results above are not affected."
+};
+function noteFor(error) {
+  switch (error.kind) {
+    case "rate-limit":
+      return NOTES.rateLimit;
+    case "forbidden":
+      if (error.write) return NOTES.write;
+      return error.area === "contents" ? NOTES.read : NOTES.readIssues;
+    case "gone":
+      return NOTES.gone;
+    case "network":
+      return NOTES.network;
+    default:
+      return NOTES.other;
+  }
+}
+async function trackIssues(input) {
+  const outcome = {
+    opened: [],
+    reopened: [],
+    updated: [],
+    closed: [],
+    errorNote: void 0,
+    notes: [],
+    warnings: []
+  };
+  try {
+    await track(input, outcome);
+  } catch (error) {
+    const note = error instanceof ApiError ? noteFor(error) : NOTES.other;
+    outcome.errorNote = note;
+    outcome.warnings.push(note);
+  }
+  return outcome;
+}
+function failedOutcome() {
+  return {
+    opened: [],
+    reopened: [],
+    updated: [],
+    closed: [],
+    errorNote: NOTES.other,
+    notes: [],
+    warnings: [NOTES.other]
+  };
+}
+function isWorkflowBot(issue) {
+  if (issue.user?.type !== "Bot" || issue.user.login !== "github-actions[bot]") {
+    return false;
+  }
+  const slug2 = issue.performed_via_github_app?.slug;
+  return slug2 === void 0 || slug2 === "github-actions";
+}
+async function listOwn(client, login) {
+  const own = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const issues = await client.listIssues(LABEL, page);
+    for (const issue of issues) {
+      if (issue.pull_request !== void 0) continue;
+      const labels = (issue.labels ?? []).map(
+        (l) => typeof l === "string" ? l : l.name
+      );
+      if (!labels.includes(LABEL)) continue;
+      const parsed = parseMarker(issue.body);
+      if (parsed === null) continue;
+      const author = issue.user;
+      const isOwn = login === null ? isWorkflowBot(issue) : author?.login === login;
+      if (!isOwn) continue;
+      own.push({ issue, marker: parsed, open: issue.state === "open" });
+    }
+    if (issues.length < 100) break;
+  }
+  return own;
+}
+function pick(own) {
+  const byFingerprint = /* @__PURE__ */ new Map();
+  for (const item of own) {
+    const current = byFingerprint.get(item.marker.fingerprint);
+    if (current === void 0 || item.open && !current.open || item.open === current.open && item.issue.number > current.issue.number) {
+      byFingerprint.set(item.marker.fingerprint, item);
+    }
+  }
+  return byFingerprint;
+}
+function trackedFindings(input) {
+  const tracked = [];
+  input.findings.forEach((finding, index) => {
+    if (finding.level === "notice") return;
+    const path4 = input.paths[index] ?? [];
+    tracked.push({ finding, path: path4, fingerprint: fingerprint(finding, path4) });
+  });
+  return tracked;
+}
+function wasChecked(files, file, rule) {
+  const found = files.find((f) => f.file === file);
+  if (found === void 0) return false;
+  return found.specVersion !== null || GATES.includes(rule);
+}
+async function track(input, out) {
+  const { client } = input;
+  const login = await client.getUser();
+  const own = await listOwn(client, login);
+  const byFingerprint = pick(own);
+  const failing = trackedFindings(input);
+  const failingFingerprints = new Map(failing.map((t) => [t.fingerprint, t]));
+  const sha7 = short(input.sha);
+  let writes = 0;
+  let notDone = 0;
+  for (const item of byFingerprint.values()) {
+    if (!item.open) continue;
+    const still = failingFingerprints.get(item.marker.fingerprint);
+    if (still !== void 0) {
+      if (sha256(still.finding.current) === item.marker.current) continue;
+      if (writes + 2 > MAX_WRITES) {
+        notDone += 1;
+        continue;
+      }
+      const old = /in ([0-9a-f]{7})\./.exec(item.issue.body ?? "")?.[1] ?? sha7;
+      const passed = /It passed at ([0-9a-f]{7})\./.exec(item.issue.body ?? "")?.[1] ?? sha7;
+      await client.updateIssue(item.issue.number, {
+        body: issueBody(still.finding, still.path, old, passed)
+      });
+      await client.addComment(
+        item.issue.number,
+        `Now ${codeSpan(still.finding.current)} as of ${sha7}.`
+      );
+      writes += 2;
+      out.updated.push(link(item.issue));
+    } else if (checkedByHash(input.files, item.marker)) {
+      if (writes + 2 > MAX_WRITES) {
+        notDone += 1;
+        continue;
+      }
+      await client.addComment(item.issue.number, `Fixed in ${sha7}.`);
+      await client.updateIssue(item.issue.number, {
+        state: "closed",
+        state_reason: "completed"
+      });
+      writes += 2;
+      out.closed.push(link(item.issue));
+    } else {
+      out.notes.push(
+        `${linkMarkdown(link(item.issue))} stays open: its file was not checked in this run.`
+      );
+    }
+  }
+  if (input.mode !== "full") {
+    if (notDone > 0)
+      out.notes.push(
+        `${notDone} issue changes were not made: the limit of ${MAX_WRITES} writes was reached.`
+      );
+    return;
+  }
+  const candidates = failing.filter(
+    (t) => byFingerprint.get(t.fingerprint)?.open !== true
+  );
+  if (candidates.length === 0) {
+    if (notDone > 0)
+      out.notes.push(
+        `${notDone} issue changes were not made: the limit of ${MAX_WRITES} writes was reached.`
+      );
+    return;
+  }
+  const proven = await proveRegressions(input, candidates);
+  let labelReady = false;
+  let opened = 0;
+  const handled = /* @__PURE__ */ new Set();
+  for (const regression of proven) {
+    if (handled.has(regression.fingerprint)) continue;
+    handled.add(regression.fingerprint);
+    const existing = byFingerprint.get(regression.fingerprint);
+    if (existing !== void 0 && existing.issue.state_reason !== "completed") {
+      const reason = existing.issue.state_reason === "not_planned" ? "not planned" : existing.issue.state_reason ?? "something other than completed";
+      out.notes.push(
+        `${linkMarkdown(link(existing.issue))} was closed as ${reason}, so it stays closed.`
+      );
+      continue;
+    }
+    if (opened >= MAX_OPENED || writes + 3 > MAX_WRITES) {
+      notDone += 1;
+      continue;
+    }
+    const before = input.before ?? ZEROS;
+    if (existing !== void 0) {
+      await client.updateIssue(existing.issue.number, {
+        state: "open",
+        state_reason: "reopened",
+        body: issueBody(regression.finding, regression.path, input.sha, before)
+      });
+      await client.addComment(
+        existing.issue.number,
+        `It fails again as of ${sha7}.`
+      );
+      writes += 2;
+      opened += 1;
+      out.reopened.push(link(existing.issue));
+      continue;
+    }
+    if (!labelReady) {
+      await client.ensureLabel(LABEL);
+      labelReady = true;
+      writes += 1;
+    }
+    const fresh = pick(await listOwn(client, login)).get(
+      regression.fingerprint
+    );
+    if (fresh !== void 0) continue;
+    const created = await client.createIssue({
+      title: title(regression.finding),
+      body: issueBody(regression.finding, regression.path, input.sha, before),
+      labels: [LABEL]
+    });
+    writes += 1;
+    opened += 1;
+    out.opened.push(link(created));
+  }
+  if (notDone > 0) {
+    out.notes.push(
+      `${notDone} issue changes were not made: the limit of ${MAX_OPENED} new issues or ${MAX_WRITES} writes was reached.`
+    );
+  }
+}
+function checkedByHash(files, mark) {
+  return files.some(
+    (f) => sha256(f.file) === mark.file && wasChecked(files, f.file, mark.rule)
+  );
+}
+async function readBefore(client, file, ref) {
+  const contents = await client.getContents(file, ref);
+  if (contents.status === "ok") return { state: "ok", text: contents.text };
+  return { state: contents.status };
+}
+async function proveRegressions(input, candidates) {
+  const { client, before, forced } = input;
+  if (before === void 0 || /^0+$/.test(before) || forced === true) return [];
+  if (!COMMIT.test(before)) return [];
+  if (!await client.commitExists(before)) return [];
+  const engine = input.check ?? check;
+  const proven = [];
+  const roots = /* @__PURE__ */ new Map();
+  for (const plugin of input.plugins) roots.set(plugin.root, plugin);
+  const byRoot = /* @__PURE__ */ new Map();
+  for (const candidate of candidates) {
+    const owner = input.plugins.find(
+      (p) => p.plugin?.path === candidate.finding.file || p.mcp?.path === candidate.finding.file
+    );
+    if (owner === void 0) continue;
+    byRoot.set(owner.root, [...byRoot.get(owner.root) ?? [], candidate]);
+  }
+  for (const [root, group] of byRoot) {
+    const plugin = roots.get(root);
+    if (plugin === void 0) continue;
+    const pluginPath = root === "" ? "plugin.json" : `${root}/plugin.json`;
+    const mcpPath = root === "" ? "mcp.json" : `${root}/mcp.json`;
+    const [pluginBefore, mcpBefore] = [
+      await readBefore(client, pluginPath, before),
+      await readBefore(client, mcpPath, before)
+    ];
+    if (pluginBefore.state === "unusable" || mcpBefore.state === "unusable")
+      continue;
+    const previous = { root };
+    if (pluginBefore.text !== void 0)
+      previous.plugin = { path: pluginPath, text: pluginBefore.text };
+    if (mcpBefore.text !== void 0)
+      previous.mcp = { path: mcpPath, text: mcpBefore.text };
+    const result = engine(previous);
+    const failingBefore = new Set(
+      result.findings.map((f, i) => fingerprint(f, result.paths[i] ?? []))
+    );
+    for (const candidate of group) {
+      const file = candidate.finding.file;
+      const existed = file === pluginPath ? pluginBefore.state === "ok" : mcpBefore.state === "ok";
+      if (!existed) continue;
+      const gate = GATES.find(
+        (rule) => result.findings.some((f) => f.file === file && f.rule === rule)
+      );
+      if (gate !== void 0) {
+        const order = GATES.indexOf(
+          candidate.finding.rule
+        );
+        if (order === -1 || order >= GATES.indexOf(gate)) continue;
+        proven.push(candidate);
+        continue;
+      }
+      if (!failingBefore.has(candidate.fingerprint)) proven.push(candidate);
+    }
+  }
+  return proven;
 }
 
 // src/report/annotations.ts
@@ -10777,8 +11360,8 @@ function renderSummary(result, options) {
     for (const warning of warnings) out.push(`- ${codeSpan(warning)}`);
     out.push("");
   }
-  for (const note of options.issueNotes ?? []) out.push(note, "");
   if (options.issuesLine !== null) out.push(options.issuesLine, "");
+  for (const note of options.issueNotes ?? []) out.push(note, "");
   return `${out.join("\n").trimEnd()}
 `;
 }
@@ -10794,11 +11377,13 @@ async function evaluate(context, deps) {
     workspace: context.workspace,
     manifests: context.manifests
   });
-  const findings = [];
+  const found = [];
   const files = [];
   for (const plugin of discovery.plugins) {
     const result = check(plugin);
-    findings.push(...result.findings);
+    result.findings.forEach((finding, index) => {
+      found.push({ finding, path: result.paths[index] ?? [] });
+    });
     for (const file of result.files) {
       const mine = result.findings.filter((f) => f.file === file.file);
       files.push({
@@ -10807,35 +11392,64 @@ async function evaluate(context, deps) {
       });
     }
   }
-  findings.sort(compare);
+  found.sort((a, b) => compare(a.finding, b.finding));
   return {
-    files,
-    findings,
-    configErrors: discovery.configErrors,
-    warnings: discovery.warnings
+    result: {
+      files,
+      findings: found.map((f) => f.finding),
+      configErrors: discovery.configErrors,
+      warnings: discovery.warnings
+    },
+    paths: found.map((f) => f.path),
+    plugins: discovery.plugins
   };
 }
-function issuesLine(context) {
+function issuesLine(context, outcome) {
   if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
     return null;
   }
   if (!context.openIssues) return ISSUES_OFF;
-  const branch = context.event.defaultBranch;
-  const onDefault = branch !== void 0 && context.ref === `refs/heads/${branch}`;
-  if (!onDefault) {
+  if (outcome === void 0) {
+    const branch = context.event.defaultBranch;
     return branch === void 0 ? "Issues: on, for the default branch only." : `Issues: on, for ${branch} only.`;
   }
-  return "Issues: on.";
+  return outcome.errorNote ?? issuesSummaryLine(outcome);
+}
+function issueNotes(outcome) {
+  if (outcome === void 0) return [];
+  const lines = [];
+  const groups = [
+    ["Opened", outcome.opened],
+    ["Reopened", outcome.reopened],
+    ["Updated", outcome.updated],
+    ["Closed", outcome.closed]
+  ];
+  for (const [label, list2] of groups) {
+    if (list2.length > 0)
+      lines.push(`${label}: ${list2.map(linkMarkdown).join(", ")}`);
+  }
+  lines.push(...outcome.notes);
+  return lines;
 }
 function print(deps, line) {
   deps.io.stdout(`${line}
 `);
 }
 async function run(context, deps) {
-  const result = await evaluate(context, deps);
+  const { result, paths, plugins } = await evaluate(context, deps);
   const kinds = new Map(
     result.files.map((f) => [f.file, f.kind])
   );
+  let outcome;
+  const mode = context.openIssues ? issueMode({
+    eventName: context.eventName,
+    ref: context.ref,
+    defaultBranch: context.event.defaultBranch,
+    forced: context.event.forced
+  }) : "none";
+  if (mode !== "none" && context.token !== "") {
+    print(deps, `::add-mask::${escapeData(context.token)}`);
+  }
   for (const error of result.configErrors) {
     print(
       deps,
@@ -10847,6 +11461,31 @@ async function run(context, deps) {
   }
   for (const finding of result.findings) {
     print(deps, annotation(finding, kinds.get(finding.file) ?? "plugin"));
+  }
+  if (mode !== "none") {
+    try {
+      const client = (deps.createClient ?? createClient)({
+        apiUrl: context.apiUrl,
+        token: context.token,
+        repository: context.repository
+      });
+      outcome = await trackIssues({
+        client,
+        mode,
+        sha: context.sha,
+        before: context.event.before,
+        forced: context.event.forced,
+        findings: result.findings,
+        paths,
+        files: result.files,
+        plugins
+      });
+    } catch {
+      outcome = failedOutcome();
+    }
+    for (const warning of outcome.warnings) {
+      print(deps, `::warning title=issues::${escapeData(warning)}`);
+    }
   }
   const report = buildReport(result, package_default.version);
   const reportFile = path3.join(
@@ -10862,7 +11501,10 @@ async function run(context, deps) {
   if (context.summaryFile !== void 0) {
     deps.io.append(
       context.summaryFile,
-      renderSummary(result, { issuesLine: issuesLine(context) })
+      renderSummary(result, {
+        issuesLine: issuesLine(context, outcome),
+        issueNotes: issueNotes(outcome)
+      })
     );
   }
   if (context.outputFile !== void 0) {

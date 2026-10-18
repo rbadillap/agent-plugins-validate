@@ -42,6 +42,7 @@ export interface ClaimRecord {
 export interface Inspection {
   result: CheckResult;
   claims: ClaimRecord[];
+  add(finding: Finding, path: PathPart[]): void;
 }
 
 function parseJson(text: string): ParseResult {
@@ -281,8 +282,9 @@ function reportUnreadable(
     ...(entry.detail === undefined ? {} : { currentText: entry.detail }),
     fix,
   };
-  out.result.findings.push(
+  out.add(
     toFinding(rule, kind, entry.path, newest, problem, undefined),
+    problem.path,
   );
   out.result.files.push({ file: entry.path, kind, specVersion: null });
 }
@@ -327,8 +329,9 @@ function checkFile(
       locator ??= createLocator(entry.text);
       position = locator(problem.path);
     }
-    out.result.findings.push(
+    out.add(
       toFinding(rule, kind, entry.path, version, problem, position),
+      problem.path,
     );
   };
   const base: RuleContext = {
@@ -380,7 +383,15 @@ export function inspect(
   registry: SchemaRegistry = vendoredRegistry(),
   rules: readonly Rule[] = allRules,
 ): Inspection {
-  const out: Inspection = { result: { findings: [], files: [] }, claims: [] };
+  const paths = new Map<Finding, PathPart[]>();
+  const out: Inspection = {
+    result: { findings: [], paths: [], files: [] },
+    claims: [],
+    add: (finding, path) => {
+      out.result.findings.push(finding);
+      paths.set(finding, path);
+    },
+  };
   if (input.plugin !== undefined) {
     checkEntry("plugin", input.plugin, registry, rules, undefined, out);
   }
@@ -397,6 +408,7 @@ export function inspect(
     checkEntry("mcp", input.mcp, registry, rules, sibling, out);
   }
   out.result.findings.sort(compareFindings);
+  out.result.paths = out.result.findings.map((f) => paths.get(f) ?? []);
   return out;
 }
 

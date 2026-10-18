@@ -1,14 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
 import schema from "../docs/report.schema.json" with { type: "json" };
 import type { Context } from "./context.ts";
-import type { Io } from "./report/io.ts";
 import { canonicalSchema } from "./rules/schema-version.ts";
 import { run } from "./run.ts";
+import { createSandbox } from "./testing/sandbox.ts";
 
 const PLUGIN = JSON.stringify({
   $schema: canonicalSchema("1.0.0", "plugin"),
@@ -26,62 +24,11 @@ const BAD_MCP = `{
 }
 `;
 
-interface Sandbox {
-  repo: string;
-  temp: string;
-  files: Map<string, string>;
-  out: string[];
-  io: Io;
-  context: (overrides?: Partial<Context>) => Context;
-  cleanup: () => void;
-}
-
-function sandbox(): Sandbox {
-  const base = mkdtempSync(path.join(tmpdir(), "apv-run-"));
-  const repo = path.join(base, "repo");
-  const temp = path.join(base, "temp");
-  mkdirSync(repo);
-  mkdirSync(temp);
-  const files = new Map<string, string>();
-  const out: string[] = [];
-  let counter = 0;
-  const io: Io = {
-    stdout: (text) => out.push(text),
-    append: (file, text) => files.set(file, (files.get(file) ?? "") + text),
-    write: (file, text) => files.set(file, text),
-    random: () => `r${++counter}`,
-  };
-  const context = (overrides: Partial<Context> = {}): Context => ({
-    manifests: "plugin.json\nmcp.json",
-    openIssues: false,
-    token: "",
-    workspace: repo,
-    eventName: "push",
-    ref: "refs/heads/main",
-    sha: "a".repeat(40),
-    action: "validate",
-    runnerTemp: temp,
-    repository: "example/repo",
-    apiUrl: "https://api.github.com",
-    outputFile: path.join(temp, "output"),
-    summaryFile: path.join(temp, "summary"),
-    event: { defaultBranch: "main", before: undefined, forced: undefined },
-    ...overrides,
-  });
-  return {
-    repo,
-    temp,
-    files,
-    out,
-    io,
-    context,
-    cleanup: () => rmSync(base, { recursive: true, force: true }),
-  };
-}
+const sandbox = createSandbox;
+type Sandbox = ReturnType<typeof createSandbox>;
 
 function put(sb: Sandbox, file: string, text: string): void {
-  mkdirSync(path.dirname(path.join(sb.repo, file)), { recursive: true });
-  writeFileSync(path.join(sb.repo, file), text);
+  sb.put(file, text);
 }
 
 test("a passing repository: exit 0, one sentence, the outputs and a report", async () => {

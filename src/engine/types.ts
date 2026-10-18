@@ -42,6 +42,12 @@ export interface PluginInput {
 
 export interface CheckResult {
   findings: Finding[];
+  /**
+   * For each finding, the keys and indexes of its field, as they are in the file. `field` writes
+   * keys that are not plain as "[…]", so two different keys can look the same there; this cannot.
+   * It identifies a finding (the issues use it) and is never printed.
+   */
+  paths: PathPart[][];
   files: { file: string; kind: FileKind; specVersion: string | null }[];
 }
 
