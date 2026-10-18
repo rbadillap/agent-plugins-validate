@@ -63,3 +63,4 @@ Cite only public sources. Every document, commit, issue and PR must stand on its
 | `make test` | `node --test 'src/**/*.test.ts'` |
 | `make build` | esbuild: `src/main.ts` → `dist/index.js` |
 | `make check-dist` | `make build`, then fail if `dist/` differs from the commit |
+| `make check-schemas` | Recompute every `schemas/*/SHA256SUMS` and fail on a mismatch or an unlisted schema |

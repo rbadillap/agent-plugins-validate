@@ -6,10 +6,10 @@
 BIN   := node_modules/.bin
 ENTRY ?= src/main.ts
 OUT   ?= dist/index.js
-SRC   := $(shell find src -name '*.ts' ! -name '*.test.ts')
+SRC   := $(shell find src -name '*.ts' ! -name '*.test.ts') $(wildcard schemas/*/*.schema.json)
 
 .DEFAULT_GOAL := help
-.PHONY: help install lint format test build check-dist
+.PHONY: help install lint format test check-schemas build check-dist
 
 help:
 	@awk 'BEGIN { FS = ":.*## " } \
@@ -36,6 +36,15 @@ format: install ## Format the code and apply Biome's safe fixes
 
 test: install ## Run the tests
 	@node --test 'src/**/*.test.ts'
+
+check-schemas: ## Fail if a vendored schema differs from its checksum, or isn't listed
+	@for dir in schemas/*/; do \
+		(cd "$$dir" && shasum -a 256 -c SHA256SUMS) || exit 1; \
+		listed=$$(wc -l < "$${dir}SHA256SUMS" | tr -d ' '); \
+		found=$$(ls "$$dir" | grep -c '\.schema\.json$$'); \
+		test "$$listed" = "$$found" || { \
+			echo "$$dir: a schema file is not listed in SHA256SUMS" >&2; exit 1; }; \
+	done
 
 ## Release
 
