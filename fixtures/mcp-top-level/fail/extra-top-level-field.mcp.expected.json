@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "mcp-top-level",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "version",
+    "current": "\"1\"",
+    "fix": "remove \"version\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 3
+  }
+]

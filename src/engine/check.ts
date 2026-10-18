@@ -55,6 +55,16 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** The supported version a file declares, or null when it can't be read or isn't supported. */
+function declaredVersionOf(
+  text: string,
+  kind: FileKind,
+  supported: readonly string[],
+): string | null {
+  const parsed = parseJson(text);
+  return parsed.ok ? declaredVersion(parsed.value, kind, supported) : null;
+}
+
 function appliesTo(rule: Rule, kind: FileKind): boolean {
   return rule.appliesTo === "both" || rule.appliesTo === kind;
 }
@@ -247,6 +257,7 @@ function checkFile(
   entry: { path: string; text: string },
   registry: SchemaRegistry,
   rules: readonly Rule[],
+  sibling: RuleContext["sibling"],
   out: Inspection,
 ): void {
   const parsed = parseJson(entry.text);
@@ -273,6 +284,7 @@ function checkFile(
     parsed,
     specVersion: null,
     supportedVersions: registry.versions,
+    ...(sibling === undefined ? {} : { sibling }),
   };
 
   for (const gate of rules.filter(
@@ -316,9 +328,17 @@ export function inspect(
 ): Inspection {
   const out: Inspection = { result: { findings: [], files: [] }, claims: [] };
   if (input.plugin !== undefined)
-    checkFile("plugin", input.plugin, registry, rules, out);
-  if (input.mcp !== undefined)
-    checkFile("mcp", input.mcp, registry, rules, out);
+    checkFile("plugin", input.plugin, registry, rules, undefined, out);
+  if (input.mcp !== undefined) {
+    const sibling = {
+      present: input.plugin !== undefined,
+      specVersion:
+        input.plugin === undefined
+          ? null
+          : declaredVersionOf(input.plugin.text, "plugin", registry.versions),
+    };
+    checkFile("mcp", input.mcp, registry, rules, sibling, out);
+  }
   out.result.findings.sort(compareFindings);
   return out;
 }

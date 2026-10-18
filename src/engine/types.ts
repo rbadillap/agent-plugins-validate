@@ -69,6 +69,8 @@ export interface RuleContext {
   /** The declared spec version when this Action supports it, otherwise null. */
   specVersion: string | null;
   supportedVersions: readonly string[];
+  /** For `mcp.json`: what is known about the `plugin.json` that goes with it. */
+  sibling?: { present: boolean; specVersion: string | null };
 }
 
 export interface Rule {

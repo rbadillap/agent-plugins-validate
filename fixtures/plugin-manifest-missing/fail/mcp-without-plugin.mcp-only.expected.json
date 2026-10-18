@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "plugin-manifest-missing",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "(root)",
+    "current": "(missing)",
+    "fix": "add plugin.json next to mcp.json",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#41-general-requirements",
+    "line": 1
+  }
+]

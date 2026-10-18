@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { canonicalSchema } from "../rules/schema-version.ts";
+import { MINIMAL_PLUGIN } from "../testing/fixtures.ts";
 import { check } from "./check.ts";
 import { locate, locateParseError } from "./locate.ts";
 
@@ -42,6 +43,7 @@ test("locate points at the opening brace for the whole document", () => {
 test("the finding for mcpServers.docs.type is on line 8", () => {
   const { findings } = check({
     root: "",
+    plugin: MINIMAL_PLUGIN,
     mcp: { path: "mcp.json", text: example },
   });
   assert.equal(findings.length, 1);
@@ -118,7 +120,11 @@ test("the parse error position is found when the message has no position", () =>
 
 test("a file with a comment is a json-syntax error on the comment's line", () => {
   const text = `{\n  // not allowed\n  "$schema": "${MCP_SCHEMA}",\n  "mcpServers": {}\n}`;
-  const { findings } = check({ root: "", mcp: { path: "mcp.json", text } });
+  const { findings } = check({
+    root: "",
+    plugin: MINIMAL_PLUGIN,
+    mcp: { path: "mcp.json", text },
+  });
   assert.equal(findings.length, 1);
   assert.equal(findings[0]?.rule, "json-syntax");
   assert.equal(findings[0]?.line, 2);
@@ -136,6 +142,10 @@ test("a file that is JSON but not an object is reported on the line where the va
 test("JSON.parse stays the authority on validity", () => {
   // jsonc-parser would accept a trailing comma if asked to; the engine never asks it to.
   const text = `{ "$schema": "${MCP_SCHEMA}", "mcpServers": {}, }`;
-  const { findings } = check({ root: "", mcp: { path: "mcp.json", text } });
+  const { findings } = check({
+    root: "",
+    plugin: MINIMAL_PLUGIN,
+    mcp: { path: "mcp.json", text },
+  });
   assert.equal(findings[0]?.rule, "json-syntax");
 });

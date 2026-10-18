@@ -23,10 +23,14 @@ test("the bundled engine runs", () => {
         docs: { type: "http", url: "https://docs.example.com/mcp" },
       },
     });
+    const plugin = JSON.stringify({
+      $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+      name: "example-plugin",
+    });
     writeFileSync(
       entry,
       `import { check } from ${JSON.stringify(engine)};
-console.log(JSON.stringify(check({ root: "", mcp: { path: "mcp.json", text: ${JSON.stringify(text)} } }).findings));`,
+console.log(JSON.stringify(check({ root: "", plugin: { path: "plugin.json", text: ${JSON.stringify(plugin)} }, mcp: { path: "mcp.json", text: ${JSON.stringify(text)} } }).findings));`,
     );
     const build = spawnSync(
       "make",

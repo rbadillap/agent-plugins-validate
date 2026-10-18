@@ -1,52 +1,13 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { rules } from "../rules/index.ts";
 import { canonicalSchema } from "../rules/schema-version.ts";
+import { loadFixtures, MINIMAL_PLUGIN } from "../testing/fixtures.ts";
 import { check, inspect } from "./check.ts";
 import type { PluginInput } from "./types.ts";
 
 // Only the gates: no rule claims a schema error, so the fallback is what answers.
 const gatesOnly = rules.filter((rule) => rule.gate);
-
-const fixturesDir = new URL("../../fixtures/", import.meta.url);
-
-interface Fixture {
-  name: string;
-  input: PluginInput;
-  expected: unknown;
-}
-
-function loadFixtures(): { pass: Fixture[]; fail: Fixture[] } {
-  const loaded = { pass: [] as Fixture[], fail: [] as Fixture[] };
-  for (const rule of readdirSync(fixturesDir)) {
-    for (const outcome of ["pass", "fail"] as const) {
-      const dir = new URL(`${rule}/${outcome}/`, fixturesDir);
-      for (const file of readdirSync(dir)) {
-        const match = /^(.+)\.(plugin|mcp)\.json$/.exec(file);
-        if (match === null || file.endsWith(".expected.json")) continue;
-        const text = readFileSync(new URL(file, dir), "utf8");
-        const kind = match[2] === "plugin" ? "plugin" : "mcp";
-        const entry = { path: `${kind}.json`, text };
-        const input: PluginInput =
-          kind === "plugin"
-            ? { root: "", plugin: entry }
-            : { root: "", mcp: entry };
-        const expectedFile = new URL(`${match[1]}.${kind}.expected.json`, dir);
-        const expected =
-          outcome === "fail"
-            ? JSON.parse(readFileSync(expectedFile, "utf8"))
-            : [];
-        loaded[outcome].push({
-          name: `${rule}/${outcome}/${file}`,
-          input,
-          expected,
-        });
-      }
-    }
-  }
-  return loaded;
-}
 
 const fixtures = loadFixtures();
 
@@ -118,7 +79,11 @@ test("the oneOf example gives exactly one finding", () => {
     "docs": { "type": "http", "url": "https://docs.example.com/mcp" }
   }
 }`;
-  const { findings } = check({ root: "", mcp: { path: "mcp.json", text } });
+  const { findings } = check({
+    root: "",
+    plugin: MINIMAL_PLUGIN,
+    mcp: { path: "mcp.json", text },
+  });
   assert.deepEqual(findings, [
     {
       rule: "mcp-server-type",
@@ -140,6 +105,7 @@ test("a server that isn't an object is checked against a shape and reported by f
   });
   const [finding] = check({
     root: "",
+    plugin: MINIMAL_PLUGIN,
     mcp: { path: "mcp.json", text },
   }).findings;
   assert.equal(finding?.field, "mcpServers.broken");
@@ -252,7 +218,11 @@ test("a type error deeper than a server's own type field isn't claimed by mcp-se
     $schema: canonicalSchema("1.0.0", "mcp"),
     mcpServers: { a: { type: "stdio", command: "./x", env: { type: 1 } } },
   });
-  const inspection = inspect({ root: "", mcp: { path: "mcp.json", text } });
+  const inspection = inspect({
+    root: "",
+    plugin: MINIMAL_PLUGIN,
+    mcp: { path: "mcp.json", text },
+  });
   assert.deepEqual(
     inspection.claims.map((c) => c.claimedBy),
     [[]],

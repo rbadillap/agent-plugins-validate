@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "database": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--config", "${PLUGIN_ROOT}/config/db.json"],
+      "cwd": "${PLUGIN_ROOT}",
+      "env": {
+        "DATA_DIR": "${PLUGIN_DATA}/database"
+      }
+    }
+  }
+}

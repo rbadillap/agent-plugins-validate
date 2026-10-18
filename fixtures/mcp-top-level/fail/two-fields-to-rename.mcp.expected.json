@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "mcp-top-level",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcpServers",
+    "current": "(missing)",
+    "fix": "add \"mcpServers\": {}",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 1
+  },
+  {
+    "rule": "mcp-top-level",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "servers",
+    "current": "{}",
+    "fix": "remove \"servers\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 3
+  },
+  {
+    "rule": "mcp-top-level",
+    "level": "error",
+    "file": "mcp.json",
+    "field": "mcp",
+    "current": "{}",
+    "fix": "remove \"mcp\"",
+    "spec": "https://github.com/agentplugins/agent-plugins-spec/blob/v1.0.0/spec/1.0.0.md#721-discovery-and-configuration",
+    "line": 4
+  }
+]
