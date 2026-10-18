@@ -24,7 +24,7 @@ const GATES = ["json-syntax", "schema-version"] as const;
 
 export type Mode = "full" | "update-close" | "none";
 
-/** What the event allows: see the table in the README's Issues section. */
+/** What the event allows: see "When it runs" in docs/issues.md. */
 export function issueMode(event: {
   eventName: string;
   ref: string;
@@ -200,7 +200,7 @@ interface Tracked {
 }
 
 /**
- * Keeps the Action's own issues in step with the findings. See the README's Issues section for the
+ * Keeps the Action's own issues in step with the findings. See docs/issues.md for the
  * rules this follows. It acts only on issues it authored, and writes only issues and one label.
  */
 export async function trackIssues(input: IssuesInput): Promise<IssuesOutcome> {
