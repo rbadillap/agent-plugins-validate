@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { rules } from "../rules/index.ts";
-import { ruleSection } from "./check.ts";
+import { ruleById, ruleEffect, ruleSection, rules } from "../rules/index.ts";
 import { slug, specUrl } from "./spec.ts";
-import { STRUCTURAL_KEYWORDS, translators } from "./translate.ts";
+import {
+  PATTERN_WORDS,
+  STRUCTURAL_KEYWORDS,
+  translators,
+} from "./translate.ts";
 import { vendoredRegistry } from "./vendored.ts";
 
 const srcDir = new URL("../", import.meta.url);
@@ -22,7 +25,7 @@ function sourcesOf(folder: string): { name: string; text: string }[] {
 
 test("the engine and the rules import nothing that does IO and don't read the environment", () => {
   const forbidden = [
-    /from\s+["'](?:node:)?(?:fs|fs\/promises|net|http|https|http2|dns|child_process|tls|dgram|worker_threads|os)["']/,
+    /(?:from|import)\s*["'](?:node:)?(?:fs|fs\/promises|net|http|https|http2|dns|child_process|tls|dgram|worker_threads|os)["']/,
     /\bprocess\./,
     /\bfetch\s*\(/,
     /\bDate\.now\b|\bnew Date\b|\bMath\.random\b/,
@@ -150,4 +153,37 @@ test("slug follows GitHub's anchor rules", () => {
     slug("7.2.1 Discovery and configuration"),
     "721-discovery-and-configuration",
   );
+});
+
+test("every pattern in the vendored schemas is described in words", () => {
+  const found = new Set<string>();
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) node.forEach(visit);
+    else if (typeof node === "object" && node !== null) {
+      for (const [key, value] of Object.entries(node)) {
+        if (key === "pattern" && typeof value === "string") found.add(value);
+        else visit(value);
+      }
+    }
+  };
+  for (const version of readdirSync(schemasDir, { withFileTypes: true })) {
+    if (!version.isDirectory()) continue;
+    const dir = new URL(`${version.name}/`, schemasDir);
+    for (const file of readdirSync(dir).filter((f) =>
+      f.endsWith(".schema.json"),
+    )) {
+      visit(JSON.parse(readFileSync(new URL(file, dir), "utf8")));
+    }
+  }
+  assert.ok(found.size > 0);
+  for (const pattern of found) assert.ok(pattern in PATTERN_WORDS, pattern);
+});
+
+test("rules are found by id, including schema-violation, with their effect", () => {
+  for (const rule of rules) assert.equal(ruleById(rule.id), rule);
+  const violation = ruleById("schema-violation");
+  assert.ok(violation);
+  assert.match(ruleEffect(violation, "mcp"), /MCP/);
+  assert.match(ruleEffect(violation, "plugin"), /reject the plugin/);
+  assert.equal(ruleById("nope"), undefined);
 });

@@ -19,10 +19,17 @@ export function fieldPath(path: readonly PathPart[]): string {
   return out;
 }
 
+/** Cuts text at 80 characters, without splitting a surrogate pair. */
+export function truncate(text: string): string {
+  if (text.length <= MAX_CURRENT) return text;
+  let cut = text.slice(0, MAX_CURRENT);
+  if (/[\ud800-\udbff]$/.test(cut)) cut = cut.slice(0, -1);
+  return `${cut}…`;
+}
+
 /** The value as JSON, cut at 80 characters. A missing value is `(missing)`. */
 export function formatCurrent(value: unknown): string {
   if (value === undefined) return "(missing)";
   const text = JSON.stringify(value);
-  if (text === undefined) return "(missing)";
-  return text.length > MAX_CURRENT ? `${text.slice(0, MAX_CURRENT)}…` : text;
+  return text === undefined ? "(missing)" : truncate(text);
 }

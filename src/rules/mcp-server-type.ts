@@ -1,5 +1,4 @@
 import type {
-  Claim,
   Problem,
   Rule,
   SchemaError,
@@ -75,7 +74,7 @@ export const mcpServerType: Rule = {
   check(): Problem[] {
     return [];
   },
-  claim(error: SchemaError): Claim | undefined {
+  claim(error: SchemaError): Problem | undefined {
     const server = error.server;
     if (
       server === undefined ||
@@ -86,7 +85,9 @@ export const mcpServerType: Rule = {
     }
     const last = error.path[error.path.length - 1];
     const typeField =
-      last === "type" && ["const", "required", "enum"].includes(error.keyword);
+      error.path.length === 3 &&
+      last === "type" &&
+      ["const", "required", "enum"].includes(error.keyword);
     const noBranch = error.keyword === "oneOf" && error.path.length === 2;
     if (!typeField && !noBranch) return undefined;
     const written = (server.value as Record<string, unknown>).type;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fieldPath, formatCurrent } from "./format.ts";
+import { fieldPath, formatCurrent, truncate } from "./format.ts";
 
 test("fieldPath joins keys with dots", () => {
   assert.equal(
@@ -56,4 +56,15 @@ test("formatCurrent cuts values over 80 characters", () => {
   const exact = `"${"x".repeat(78)}"`;
   assert.equal(exact.length, 80);
   assert.equal(formatCurrent("x".repeat(78)), exact);
+});
+
+test("truncate doesn't split a surrogate pair", () => {
+  const text = `${"x".repeat(79)}😀tail`;
+  const cut = truncate(text);
+  assert.equal(cut, `${"x".repeat(79)}…`);
+  assert.doesNotMatch(cut, /[\ud800-\udbff](?![\udc00-\udfff])/);
+});
+
+test("truncate leaves short text alone", () => {
+  assert.equal(truncate("short"), "short");
 });

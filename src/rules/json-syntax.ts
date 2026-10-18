@@ -28,6 +28,16 @@ export const jsonSyntax: Rule = {
   gate: true,
   check(ctx: RuleContext): Problem[] {
     if (!ctx.parsed.ok) {
+      if (ctx.text.startsWith("\uFEFF")) {
+        return [
+          {
+            path: [],
+            current: undefined,
+            currentText: "(not valid JSON)",
+            fix: "remove the byte order mark at the start of the file",
+          },
+        ];
+      }
       return [
         {
           path: [],

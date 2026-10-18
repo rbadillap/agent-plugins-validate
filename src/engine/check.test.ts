@@ -189,12 +189,52 @@ test("errors without an owner are translated, never shown in the validator's wor
   assert.deepEqual(findings.sort(), [
     "author use an object",
     "mcpServers.local.command use a non-empty string",
-    "mcpServers.local.cwd use a value that matches ^(?:\\./|\\$\\{PLUGIN_ROOT\\}(?:/|$)|\\$\\{PLUGIN_DATA\\}(?:/|$))",
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the spec's placeholders, written as text
+    'mcpServers.local.cwd use a value that starts with "./", "${PLUGIN_ROOT}" or "${PLUGIN_DATA}"',
     'mcpServers.local.env.PLUGIN_ROOT remove "PLUGIN_ROOT"',
     'mcpServers.local.url remove "url"',
     "name use a non-empty string",
-    "name use a value that matches ^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$",
+    'name use a value that contains only lowercase letters, digits, hyphens and periods, starts and ends with a letter or digit, and has no "--" or ".."',
     'skills remove "skills"',
     'version use "3"',
   ]);
+});
+
+test("a missing required field is described, not filled with a value that would fail", () => {
+  const text = JSON.stringify({ $schema: canonicalSchema("1.0.0", "plugin") });
+  const [finding] = check({
+    root: "",
+    plugin: { path: "plugin.json", text },
+  }).findings;
+  assert.equal(finding?.field, "name");
+  assert.equal(finding?.current, "(missing)");
+  assert.equal(
+    finding?.fix,
+    'add "name" as a non-empty string that contains only lowercase letters, digits, hyphens and periods, starts and ends with a letter or digit, and has no "--" or ".."',
+  );
+});
+
+test("a byte order mark gets its own fix", () => {
+  const text = `﻿{ "name": "x" }`;
+  const [finding] = check({
+    root: "",
+    plugin: { path: "plugin.json", text },
+  }).findings;
+  assert.equal(finding?.rule, "json-syntax");
+  assert.equal(
+    finding?.fix,
+    "remove the byte order mark at the start of the file",
+  );
+});
+
+test("a type error deeper than a server's own type field isn't claimed by mcp-server-type", () => {
+  const text = JSON.stringify({
+    $schema: canonicalSchema("1.0.0", "mcp"),
+    mcpServers: { a: { type: "stdio", command: "./x", env: { type: 1 } } },
+  });
+  const inspection = inspect({ root: "", mcp: { path: "mcp.json", text } });
+  assert.deepEqual(
+    inspection.claims.map((c) => c.claimedBy),
+    [[]],
+  );
 });

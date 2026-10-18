@@ -1,15 +1,14 @@
 import type { ErrorObject } from "ajv/dist/2020.js";
-import { rules } from "../rules/index.ts";
+import { ruleSection, rules, schemaViolation } from "../rules/index.ts";
 import { selectServerType } from "../rules/mcp-server-type.ts";
 import { declaredVersion } from "../rules/schema-version.ts";
-import { fieldPath, formatCurrent } from "./format.ts";
+import { fieldPath, formatCurrent, truncate } from "./format.ts";
 import type { CompiledSchemas, SchemaRegistry } from "./registry.ts";
 import { SERVER_DEFS } from "./registry.ts";
 import { specUrl } from "./spec.ts";
 import { translators } from "./translate.ts";
 import type {
   CheckResult,
-  Claim,
   FileKind,
   Finding,
   ParseResult,
@@ -23,20 +22,6 @@ import type {
 } from "./types.ts";
 import { vendoredRegistry } from "./vendored.ts";
 
-/** Reported for a schema error that no rule claims. Tests keep it from happening for any fixture. */
-const SCHEMA_VIOLATION: Rule = {
-  id: "schema-violation",
-  level: "error",
-  section: "5.2",
-  sections: { mcp: "7.2.1" },
-  effect: "Clients that follow the spec reject the plugin or skip the entry.",
-  effects: {
-    mcp: "Clients that follow the spec turn off MCP or skip the server.",
-  },
-  appliesTo: "both",
-  check: () => [],
-};
-
 export interface ClaimRecord {
   error: SchemaError;
   /** Ids of the rules that claimed the error. A healthy error has exactly one. */
@@ -46,14 +31,6 @@ export interface ClaimRecord {
 export interface Inspection {
   result: CheckResult;
   claims: ClaimRecord[];
-}
-
-export function ruleSection(rule: Rule, kind: FileKind): string {
-  return rule.sections?.[kind] ?? rule.section;
-}
-
-export function ruleEffect(rule: Rule, kind: FileKind): string {
-  return rule.effects?.[kind] ?? rule.effect;
 }
 
 function parseJson(text: string): ParseResult {
@@ -209,7 +186,10 @@ function toFinding(
     level: rule.level,
     file,
     field: fieldPath(problem.path),
-    current: problem.currentText ?? formatCurrent(problem.current),
+    current:
+      problem.currentText === undefined
+        ? formatCurrent(problem.current)
+        : truncate(problem.currentText),
     fix: problem.fix,
     spec: specUrl(version, ruleSection(rule, kind)),
   };
@@ -218,8 +198,8 @@ function toFinding(
 function claimFor(
   error: SchemaError,
   ctx: RuleContext,
-): { rule: Rule; claim: Claim; by: string[] } {
-  const claimed: { rule: Rule; claim: Claim }[] = [];
+): { rule: Rule; claim: Problem; by: string[] } {
+  const claimed: { rule: Rule; claim: Problem }[] = [];
   for (const rule of rules) {
     if (rule.claim === undefined || !appliesTo(rule, ctx.kind)) continue;
     const claim = rule.claim(error, ctx);
@@ -234,7 +214,7 @@ function claimFor(
     current: error.value,
     fix: "use a value the specification allows",
   };
-  return { rule: SCHEMA_VIOLATION, claim: translation, by: [] };
+  return { rule: schemaViolation, claim: translation, by: [] };
 }
 
 function compareFindings(a: Finding, b: Finding): number {
@@ -298,11 +278,7 @@ function checkFile(
   for (const error of schemaErrors(kind, compiled, parsed.value)) {
     const { rule, claim, by } = claimFor(error, ctx);
     out.claims.push({ error, claimedBy: by });
-    if (claim !== "drop") {
-      out.result.findings.push(
-        toFinding(rule, kind, entry.path, version, claim),
-      );
-    }
+    out.result.findings.push(toFinding(rule, kind, entry.path, version, claim));
   }
 
   for (const rule of rules) {

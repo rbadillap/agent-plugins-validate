@@ -23,10 +23,9 @@ function headingsFor(version: string): readonly string[] {
  * or the text of an unnumbered heading such as "stdio". Throws when the section doesn't exist.
  */
 export function specUrl(version: string, section: string): string {
-  const heading = headingsFor(version).find((h) => {
-    const [first = ""] = h.split(" ");
-    return h === section || first.replace(/\.$/, "") === section;
-  });
+  const heading = headingsFor(version).find(
+    (h) => h === section || /^\d+(?:\.\d+)*/.exec(h)?.[0] === section,
+  );
   if (heading === undefined) {
     throw new Error(
       `Section ${section} not found in the Agent Plugins ${version} specification`,

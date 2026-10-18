@@ -51,23 +51,58 @@ function typeFix(expected: readonly string[], value: unknown): string {
   return `use ${joinOr(expected.map(article))}`;
 }
 
-function placeholder(schema: unknown): string {
-  if (typeof schema !== "object" || schema === null) return "{}";
-  const s = schema as { const?: unknown; type?: unknown };
+/**
+ * What each pattern in the vendored schemas asks for, in words. A test requires an entry for every
+ * pattern in every vendored schema, so a new spec version can't print a raw regular expression.
+ */
+export const PATTERN_WORDS: Readonly<Record<string, string>> = {
+  "^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$":
+    'contains only lowercase letters, digits, hyphens and periods, starts and ends with a letter or digit, and has no "--" or ".."',
+  "^(?:\\./|\\$\\{PLUGIN_ROOT\\}(?:/|$)|\\$\\{PLUGIN_DATA\\}(?:/|$))":
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the spec's placeholders, written as text
+    'starts with "./", "${PLUGIN_ROOT}" or "${PLUGIN_DATA}"',
+};
+
+function patternWords(pattern: unknown): string {
+  return (
+    PATTERN_WORDS[String(pattern)] ?? `matches the pattern ${String(pattern)}`
+  );
+}
+
+/** What a valid value looks like, for a property that is missing. */
+function describeValue(schema: unknown): string {
+  if (typeof schema !== "object" || schema === null) return "a valid value";
+  const s = schema as {
+    const?: unknown;
+    type?: unknown;
+    minLength?: unknown;
+    pattern?: unknown;
+  };
   if ("const" in s) return quote(s.const);
+  let noun: string;
   switch (s.type) {
     case "string":
-      return '""';
+      noun = Number(s.minLength) >= 1 ? "a non-empty string" : "a string";
+      break;
     case "array":
-      return "[]";
+      noun = "an array";
+      break;
     case "boolean":
-      return "false";
+      noun = "a boolean";
+      break;
     case "number":
     case "integer":
-      return "0";
+      noun = "a number";
+      break;
+    case "object":
+      noun = "an object";
+      break;
     default:
-      return "{}";
+      noun = "a valid value";
   }
+  return s.pattern === undefined
+    ? noun
+    : `${noun} that ${patternWords(s.pattern)}`;
 }
 
 function lastKey(error: SchemaError): string {
@@ -100,10 +135,10 @@ export const translators: Record<string, Translator> = {
       | Record<string, unknown>
       | undefined;
     const name = lastKey(error);
-    return same(
-      error,
-      `add ${quote(name)}: ${placeholder(properties?.[name])}`,
-    );
+    const value = describeValue(properties?.[name]);
+    // A constant is written out; anything else is described.
+    const joiner = value.startsWith('"') ? ": " : " as ";
+    return same(error, `add ${quote(name)}${joiner}${value}`);
   },
   additionalProperties(error) {
     return same(error, `remove ${quote(lastKey(error))}`);
@@ -123,7 +158,7 @@ export const translators: Record<string, Translator> = {
   pattern(error) {
     return same(
       error,
-      `use a value that matches ${String(error.params.pattern)}`,
+      `use a value that ${patternWords(error.params.pattern)}`,
     );
   },
   propertyNames(error) {

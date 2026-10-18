@@ -20,7 +20,6 @@ export interface SchemaSource {
 }
 
 export interface CompiledSchemas {
-  version: string;
   plugin: ValidateFunction;
   mcp: ValidateFunction;
   servers: Record<ServerType, ValidateFunction>;
@@ -69,7 +68,6 @@ export function createRegistry(
     ajv.addSchema(source.mcp);
     const mcpId = idOf(source.mcp);
     compiled.set(version, {
-      version,
       plugin: compile(ajv, idOf(source.plugin)),
       mcp: compile(ajv, mcpId),
       servers: {
