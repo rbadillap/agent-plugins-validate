@@ -3,8 +3,7 @@ import { readdirSync } from "node:fs";
 import { test } from "node:test";
 import { check } from "../engine/check.ts";
 import { canonicalSchema } from "./schema-version.ts";
-import { parseExpression } from "./spdx-expression.ts";
-import { LICENSE_IDS, SPDX_LIST_VERSION } from "./spdx-list.ts";
+import { LICENSE_IDS, parseExpression, SPDX_LIST_VERSION } from "./spdx.ts";
 
 function checkLicense(license: unknown) {
   const text = JSON.stringify({
